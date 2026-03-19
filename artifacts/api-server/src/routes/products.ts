@@ -1,84 +1,100 @@
 import { Router, type IRouter } from "express";
+import { db } from "@workspace/db";
+import { productsTable } from "@workspace/db";
+import { sql, ilike, or } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-const products = [
-  {
-    id: "prod-1",
-    name: "Hyaluronic Acid Serum",
-    brand: "The Ordinary",
-    category: "Serum",
-    price: 12.9,
-    rating: 4.7,
-    imageUrl: "",
-    description: "2% hyaluronic acid for intense hydration",
-    ingredients: ["Hyaluronic Acid", "Vitamin B5"],
-    isFavorite: false,
-  },
-  {
-    id: "prod-2",
-    name: "Ultra Facial Cream",
-    brand: "Kiehl's",
-    category: "Moisturizer",
-    price: 52.0,
-    rating: 4.8,
-    imageUrl: "",
-    description: "24-hour hydration moisturizer for all skin types",
-    ingredients: ["Glacial Glycoprotein", "Imperata Cylindrica"],
-    isFavorite: true,
-  },
-  {
-    id: "prod-3",
-    name: "Gentle Foaming Cleanser",
-    brand: "CeraVe",
-    category: "Cleanser",
-    price: 14.0,
-    rating: 4.6,
-    imageUrl: "",
-    description: "Non-comedogenic cleanser with 3 essential ceramides",
-    ingredients: ["Ceramides", "Niacinamide", "Hyaluronic Acid"],
-    isFavorite: false,
-  },
-  {
-    id: "prod-4",
-    name: "Invisible Shield SPF 35",
-    brand: "Supergoop",
-    category: "SPF",
-    price: 38.0,
-    rating: 4.5,
-    imageUrl: "",
-    description: "Lightweight daily sunscreen that wears like a serum",
-    ingredients: ["Avobenzone", "Octisalate", "Vitamin E"],
-    isFavorite: false,
-  },
-  {
-    id: "prod-5",
-    name: "10% Niacinamide + 1% Zinc",
-    brand: "The Ordinary",
-    category: "Serum",
-    price: 6.9,
-    rating: 4.6,
-    imageUrl: "",
-    description: "Reduces blemishes and balances sebum activity",
-    ingredients: ["Niacinamide", "Zinc PCA"],
-    isFavorite: true,
-  },
-  {
-    id: "prod-6",
-    name: "Clarifying Toner",
-    brand: "Paula's Choice",
-    category: "Toner",
-    price: 32.0,
-    rating: 4.4,
-    imageUrl: "",
-    description: "Alcohol-free toner with antioxidants",
-    ingredients: ["Green Tea Extract", "Hyaluronic Acid"],
-    isFavorite: false,
-  },
-];
+router.get("/", async (req, res) => {
+  try {
+    const { category, search, concern, limit = "30", offset = "0" } = req.query as Record<string, string>;
 
-router.get("/", (_req, res) => {
-  res.json(products);
+    let query = db.select().from(productsTable);
+
+    const conditions: any[] = [];
+
+    if (search) {
+      conditions.push(
+        or(
+          ilike(productsTable.name, `%${search}%`),
+          ilike(productsTable.brand, `%${search}%`),
+          ilike(productsTable.description, `%${search}%`)
+        )
+      );
+    }
+
+    if (category && category !== "All") {
+      conditions.push(ilike(productsTable.category, `%${category}%`));
+    }
+
+    if (concern) {
+      conditions.push(sql`${productsTable.skinConcerns} @> ARRAY[${concern}]::text[]`);
+    }
+
+    let results = await db
+      .select()
+      .from(productsTable)
+      .where(conditions.length > 0 ? sql`${conditions.reduce((a: any, b: any) => sql`${a} AND ${b}`)}` : undefined)
+      .limit(parseInt(limit))
+      .offset(parseInt(offset))
+      .orderBy(sql`rating DESC NULLS LAST`);
+
+    res.json(results);
+  } catch (e: any) {
+    console.error("Products error:", e.message);
+    res.status(500).json({ message: "Failed to fetch products" });
+  }
+});
+
+router.get("/recommend", async (req, res) => {
+  try {
+    const { concerns = "general", limit = "12" } = req.query as Record<string, string>;
+    const concernList = concerns.split(",").map((c) => c.trim());
+
+    // Get a mix of products matching any of the concerns
+    const results = await db
+      .select()
+      .from(productsTable)
+      .where(
+        sql`${productsTable.skinConcerns} && ARRAY[${sql.join(
+          concernList.map((c) => sql`${c}`),
+          sql`, `
+        )}]::text[]`
+      )
+      .orderBy(sql`rating DESC NULLS LAST`)
+      .limit(parseInt(limit));
+
+    res.json(results);
+  } catch (e: any) {
+    console.error("Recommend error:", e.message);
+    res.status(500).json({ message: "Failed to fetch recommendations" });
+  }
+});
+
+router.get("/categories", async (_req, res) => {
+  try {
+    const result = await db
+      .selectDistinct({ category: productsTable.category })
+      .from(productsTable)
+      .orderBy(productsTable.category);
+    res.json(result.map((r) => r.category));
+  } catch (e: any) {
+    res.status(500).json({ message: "Failed to fetch categories" });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [product] = await db
+      .select()
+      .from(productsTable)
+      .where(sql`${productsTable.id} = ${id}`);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  } catch (e: any) {
+    res.status(500).json({ message: "Failed to fetch product" });
+  }
 });
 
 export default router;
