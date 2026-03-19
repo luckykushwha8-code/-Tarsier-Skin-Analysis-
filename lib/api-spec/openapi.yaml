@@ -1,22 +1,32 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Beauty Analyzer API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: scan
+    description: Skin scan operations
+  - name: reports
+    description: Skin reports
+  - name: products
+    description: Skincare products
+  - name: routines
+    description: Skincare routines
+  - name: progress
+    description: Progress tracking
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,194 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /scans:
+    post:
+      operationId: createScan
+      tags: [scan]
+      summary: Create a new skin scan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScanRequest"
+      responses:
+        "201":
+          description: Scan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanResult"
+    get:
+      operationId: listScans
+      tags: [scan]
+      summary: List all scans for user
+      responses:
+        "200":
+          description: List of scans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScanResult"
+
+  /scans/{scanId}:
+    get:
+      operationId: getScan
+      tags: [scan]
+      summary: Get scan by ID
+      parameters:
+        - name: scanId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Scan result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanResult"
+
+  /reports/{scanId}:
+    get:
+      operationId: getReport
+      tags: [reports]
+      summary: Get detailed report for a scan
+      parameters:
+        - name: scanId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detailed skin report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkinReport"
+
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: Get recommended products
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /routines:
+    get:
+      operationId: getRoutines
+      tags: [routines]
+      summary: Get skincare routines
+      responses:
+        "200":
+          description: List of routines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Routine"
+
+  /progress:
+    get:
+      operationId: getProgress
+      tags: [progress]
+      summary: Get progress data
+      responses:
+        "200":
+          description: Progress data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProgressData"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [auth]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    put:
+      operationId: updateProfile
+      tags: [auth]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +232,291 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+      required:
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/UserProfile"
+      required:
+        - token
+        - user
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        avatar:
+          type: string
+        skinType:
+          type: string
+        age:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        skinType:
+          type: string
+        age:
+          type: integer
+
+    CreateScanRequest:
+      type: object
+      properties:
+        imageData:
+          type: string
+          description: Base64 encoded image data
+        notes:
+          type: string
+      required:
+        - imageData
+
+    ScanResult:
+      type: object
+      properties:
+        id:
+          type: string
+        overallScore:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        hydration:
+          type: integer
+        oiliness:
+          type: integer
+        acne:
+          type: integer
+        darkSpots:
+          type: integer
+        wrinkles:
+          type: integer
+        sensitivity:
+          type: integer
+        status:
+          type: string
+          enum: [processing, completed, failed]
+      required:
+        - id
+        - overallScore
+        - createdAt
+        - status
+
+    SkinReport:
+      type: object
+      properties:
+        scanId:
+          type: string
+        overallScore:
+          type: integer
+        skinType:
+          type: string
+        concerns:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkinMetric"
+        recommendations:
+          type: array
+          items:
+            type: string
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - scanId
+        - overallScore
+        - skinType
+        - concerns
+        - metrics
+        - recommendations
+
+    SkinMetric:
+      type: object
+      properties:
+        name:
+          type: string
+        score:
+          type: integer
+        status:
+          type: string
+          enum: [good, fair, poor]
+        description:
+          type: string
+      required:
+        - name
+        - score
+        - status
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        rating:
+          type: number
+        imageUrl:
+          type: string
+        description:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        isFavorite:
+          type: boolean
+      required:
+        - id
+        - name
+        - brand
+        - category
+        - price
+        - rating
+
+    Routine:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [morning, evening, weekly]
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoutineStep"
+        duration:
+          type: integer
+          description: Duration in minutes
+        isCompleted:
+          type: boolean
+      required:
+        - id
+        - name
+        - type
+        - steps
+
+    RoutineStep:
+      type: object
+      properties:
+        order:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        product:
+          type: string
+        duration:
+          type: integer
+        isCompleted:
+          type: boolean
+      required:
+        - order
+        - name
+
+    ProgressData:
+      type: object
+      properties:
+        scans:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScanResult"
+        improvements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Improvement"
+        streakDays:
+          type: integer
+        totalScans:
+          type: integer
+      required:
+        - scans
+        - improvements
+        - streakDays
+        - totalScans
+
+    Improvement:
+      type: object
+      properties:
+        metric:
+          type: string
+        change:
+          type: integer
+        trend:
+          type: string
+          enum: [improving, stable, declining]
+      required:
+        - metric
+        - change
+        - trend

@@ -1,0 +1,27 @@
+packages:
+  "framer-motion": "Smooth animations for onboarding, scan overlay, and page transitions"
+  "recharts": "Data visualization for the skin progress charts"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for safely merging Tailwind CSS classes"
+  "date-fns": "Formatting dates for scans and reports"
+
+images:
+  - path: "artifacts/ai-beauty-analyzer/public/images/logo.png"
+    description: "Minimalist luxury skincare logo icon, elegant abstract flower or drop shape, deep navy blue on transparent background"
+    aspect_ratio: "1:1"
+  - path: "artifacts/ai-beauty-analyzer/public/images/onboarding-1.png"
+    description: "Elegant abstract 3D render of glowing healthy skin texture, soft pink and cream tones, luxury beauty aesthetic"
+    aspect_ratio: "3:4"
+  - path: "artifacts/ai-beauty-analyzer/public/images/onboarding-2.png"
+    description: "Abstract representation of AI face scanning, glowing points on a minimalist female face profile, deep navy and pink"
+    aspect_ratio: "3:4"
+  - path: "artifacts/ai-beauty-analyzer/public/images/onboarding-3.png"
+    description: "Luxury skincare products neatly arranged on a clean minimalist podium, soft natural lighting, pastel pink background"
+    aspect_ratio: "3:4"
+  - path: "artifacts/ai-beauty-analyzer/public/images/avatar.png"
+    description: "Beautiful minimal illustrated female avatar, soft elegant lines, luxury fashion sketch style"
+    aspect_ratio: "1:1"
+
+notes:
+  - Using generated hooks from @workspace/api-client-react where possible, with fallbacks to mock data if the backend is not fully implemented yet.
+  - App is wrapped in a mobile-sized container (max-width 430px) centered on screen for a native app feel on desktop.

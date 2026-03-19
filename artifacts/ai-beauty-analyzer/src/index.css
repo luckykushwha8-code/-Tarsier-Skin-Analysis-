@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger: hsl(var(--danger));
+
+  --radius-xl: 1.5rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+}
+
+:root {
+  /* Soft pink and Deep Navy Luxury Theme */
+  --background: 340 25% 98%;      /* Very soft off-white/pink */
+  --foreground: 216 65% 11%;      /* Deep Navy */
+  
+  --primary: 216 65% 11%;         /* Deep Navy for main buttons */
+  --primary-foreground: 0 0% 100%; /* White */
+  
+  --secondary: 346 54% 85%;       /* Soft Muted Pink */
+  --secondary-foreground: 216 65% 11%;
+  
+  --muted: 340 15% 92%;           /* Grayish pink */
+  --muted-foreground: 216 30% 40%;
+  
+  --accent: 335 70% 65%;          /* Vibrant soft pink for highlights */
+  --accent-foreground: 0 0% 100%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 216 65% 11%;
+  
+  --border: 340 20% 90%;
+  --input: 340 20% 90%;
+  --ring: 216 65% 11%;
+
+  --success: 142 60% 45%;
+  --warning: 38 92% 50%;
+  --danger: 348 83% 53%;
+}
+
+.dark {
+  /* Optional dark mode - rich deep navy base */
+  --background: 216 65% 8%;
+  --foreground: 340 25% 98%;
+  
+  --primary: 346 54% 85%;
+  --primary-foreground: 216 65% 11%;
+  
+  --secondary: 216 45% 15%;
+  --secondary-foreground: 340 25% 98%;
+  
+  --muted: 216 40% 18%;
+  --muted-foreground: 216 20% 70%;
+  
+  --accent: 335 70% 65%;
+  --accent-foreground: 0 0% 100%;
+  
+  --card: 216 50% 12%;
+  --card-foreground: 340 25% 98%;
+  
+  --border: 216 40% 20%;
+  --input: 216 40% 20%;
+  --ring: 346 54% 85%;
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-100 text-foreground antialiased font-sans flex justify-center;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-medium tracking-tight;
+  }
+
+  /* The main app container to constrain mobile view on desktop */
+  #root {
+    @apply w-full h-full min-h-screen flex justify-center;
+  }
+}
+
+/* Custom scrollbar for mobile container */
+.app-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+.app-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-scroll-container::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+}
+.dark .glass {
+  @apply bg-card/70 backdrop-blur-md border border-white/5;
+}
+
+/* Hide scrollbar completely for horizontal scrolling lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "AI Beauty Analyzer"
+version = "1.0.0"
+id = "artifacts/ai-beauty-analyzer"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22515
+
+[services.development]
+run = "pnpm --filter @workspace/ai-beauty-analyzer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ai-beauty-analyzer", "run", "build" ]
+publicDir = "artifacts/ai-beauty-analyzer/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22515"
+BASE_PATH = "/"
