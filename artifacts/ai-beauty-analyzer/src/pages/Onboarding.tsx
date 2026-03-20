@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/Button";
 import { ScanFace, Zap, ShieldCheck } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { TarsierLogo } from "@/components/TarsierLogo";
@@ -10,26 +9,29 @@ const slides = [
   {
     id: 1,
     title: "Meet Tarsier",
-    subtitle: "The AI skin scanner with eyes that see everything. Get a clinical-grade skin analysis in seconds.",
-    icon: <ScanFace className="w-8 h-8" />,
-    gradient: "from-violet-900/60 via-purple-900/30 to-transparent",
+    subtitle: "The AI skin scanner with eyes that see everything. Clinical-grade analysis in seconds.",
+    icon: <ScanFace className="w-6 h-6 text-white" />,
+    image: "https://images.unsplash.com/photo-1512310604669-443f26c35f52?w=800&q=90",
+    tint: "bg-violet-950/50",
     dotColor: "bg-violet-500",
   },
   {
     id: 2,
     title: "Detect. Analyse. Act.",
-    subtitle: "Tarsier detects acne, pigmentation, dark circles, wrinkles and more — then maps a personalised plan.",
-    icon: <Zap className="w-8 h-8" />,
-    gradient: "from-blue-900/60 via-indigo-900/30 to-transparent",
+    subtitle: "Tarsier spots acne, dark circles, pigmentation & more — then builds your plan.",
+    icon: <Zap className="w-6 h-6 text-white" />,
+    image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=90",
+    tint: "bg-blue-950/50",
     dotColor: "bg-blue-500",
   },
   {
     id: 3,
     title: "Your Skin. Your Routine.",
-    subtitle: "Get AI-matched product recommendations and a step-by-step routine built specifically for your skin.",
-    icon: <ShieldCheck className="w-8 h-8" />,
-    gradient: "from-violet-900/60 via-blue-900/30 to-transparent",
-    dotColor: "bg-indigo-500",
+    subtitle: "AI-matched products and a step-by-step routine built specifically for you.",
+    icon: <ShieldCheck className="w-6 h-6 text-white" />,
+    image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=800&q=90",
+    tint: "bg-indigo-950/50",
+    dotColor: "bg-indigo-400",
   },
 ];
 
@@ -54,71 +56,90 @@ export function Onboarding() {
 
   return (
     <MobileLayout showBottomNav={false}>
-      <div className="flex flex-col h-screen bg-background relative overflow-hidden">
-        {/* Ambient background blobs */}
-        <div className="absolute top-[-80px] left-[-60px] w-64 h-64 rounded-full bg-violet-600/20 blur-[80px] pointer-events-none" />
-        <div className="absolute bottom-[-60px] right-[-60px] w-56 h-56 rounded-full bg-blue-600/20 blur-[80px] pointer-events-none" />
+      <div className="relative flex flex-col h-screen overflow-hidden">
+        {/* Background girl image — transitions with slide */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide + "-bg"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0 z-0"
+          >
+            <img
+              src={slide.image}
+              alt=""
+              className="w-full h-full object-cover object-top"
+            />
+            {/* Dark gradient — heavier at bottom */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/90" />
+            {/* Tint overlay */}
+            <div className={`absolute inset-0 ${slide.tint} mix-blend-multiply`} />
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Skip */}
+        {/* Neon ambient glows */}
+        <div className="absolute top-[-40px] left-[-40px] w-52 h-52 rounded-full bg-violet-600/20 blur-[80px] z-0 pointer-events-none" />
+        <div className="absolute bottom-40 right-[-30px] w-44 h-44 rounded-full bg-blue-600/20 blur-[80px] z-0 pointer-events-none" />
+
+        {/* Skip button */}
         <button
           onClick={handleComplete}
-          className="absolute top-8 right-6 z-20 text-muted-foreground text-sm font-medium hover:text-foreground transition-colors"
+          className="absolute top-10 right-6 z-20 text-white/60 text-sm font-medium hover:text-white transition-colors"
         >
           Skip
         </button>
 
-        {/* Hero area */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16">
-          {/* Logo */}
-          <motion.div
-            key={currentSlide + "logo"}
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="mb-8"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full blur-2xl bg-violet-600/30 scale-110" />
-              <TarsierLogo size={110} />
-            </div>
-          </motion.div>
+        {/* Logo top-left */}
+        <div className="absolute top-8 left-6 z-20 flex items-center gap-2">
+          <TarsierLogo size={32} />
+          <span className="text-white font-serif font-bold text-base">Tarsier</span>
+        </div>
 
+        {/* Bottom content */}
+        <div className="relative z-10 mt-auto px-7 pb-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.35 }}
-              className="flex flex-col items-center text-center"
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <h1 className="text-4xl font-serif font-bold mb-4 gradient-text">{slide.title}</h1>
-              <p className="text-muted-foreground text-base leading-relaxed max-w-xs">{slide.subtitle}</p>
+              {/* Icon badge */}
+              <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+                {slide.icon}
+              </div>
+
+              <h1 className="text-4xl font-serif font-bold text-white mb-3 leading-tight">
+                {slide.title}
+              </h1>
+              <p className="text-white/60 text-base leading-relaxed mb-8">
+                {slide.subtitle}
+              </p>
+
+              {/* Progress dots */}
+              <div className="flex gap-2 mb-6">
+                {slides.map((s, i) => (
+                  <button key={i} onClick={() => setCurrentSlide(i)}>
+                    <div
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        i === currentSlide ? `w-8 ${s.dotColor}` : "w-2 bg-white/20"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={handleNext}
+                className="btn-neon w-full py-4 rounded-2xl text-white font-semibold text-base"
+              >
+                {currentSlide === slides.length - 1 ? "Get Started" : "Continue"}
+              </button>
             </motion.div>
           </AnimatePresence>
-        </div>
-
-        {/* Bottom controls */}
-        <div className="px-8 pb-12 flex flex-col items-center gap-8">
-          {/* Progress dots */}
-          <div className="flex gap-2">
-            {slides.map((s, i) => (
-              <button key={i} onClick={() => setCurrentSlide(i)}>
-                <div
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === currentSlide ? `w-8 ${s.dotColor}` : "w-2 bg-border"
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={handleNext}
-            className="btn-neon w-full py-4 rounded-2xl text-white font-semibold text-base"
-          >
-            {currentSlide === slides.length - 1 ? "Get Started" : "Continue"}
-          </button>
         </div>
       </div>
     </MobileLayout>
