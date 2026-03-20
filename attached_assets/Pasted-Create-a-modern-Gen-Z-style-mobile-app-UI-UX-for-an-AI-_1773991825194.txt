@@ -1,0 +1,101 @@
+Create a modern Gen-Z style mobile app UI/UX for an AI skincare platform called "Tarsier AI".
+
+🎯 CORE FEATURES:
+1. AI Skin Scan (camera-based analysis)
+2. Personalized skincare product recommendations
+3. Add to Cart + Checkout system
+4. Payment gateway integration
+5. User dashboard with saved products & history
+
+🎨 DESIGN STYLE:
+- Theme: Dark mode + Neon accents (Purple, Blue glow)
+- Style: Minimal, futuristic, premium (inspired by Apple + Snapchat + Tesla UI)
+- Animations: Smooth transitions, glowing buttons, micro-interactions
+- Icons: Rounded, modern, Gen-Z friendly
+
+📱 SCREENS REQUIRED:
+
+1. HOME SCREEN:
+- AI scan button (center glowing button)
+- “Scan Your Skin” CTA
+- Quick access: Products | History | Profile
+
+2. SCAN RESULT SCREEN:
+- Skin analysis (Acne %, Oil level, Dark spots)
+- AI score (0–100)
+- “View Recommended Products” button
+
+3. PRODUCT LIST SCREEN:
+- Scrollable product cards
+- Each card includes:
+  - Product image
+  - Name
+  - Price
+  - Rating
+  - “Add to Cart” button
+- Filter: Skin type, price, brand
+
+4. PRODUCT DETAIL PAGE:
+- Full image
+- Description
+- Benefits
+- Ingredients
+- Reviews
+- “Add to Cart” button (sticky bottom)
+
+5. CART SCREEN:
+- Selected products list
+- Quantity selector (+ / - buttons)
+- Total price calculation
+- “Proceed to Checkout” button
+
+6. CHECKOUT / PAYMENT PANEL:
+- User details (Name, Address, Phone)
+- Payment options:
+  - UPI
+  - Credit/Debit Card
+  - Net Banking
+  - Wallets
+- Order summary
+- “Pay Now” button (highlighted)
+- Payment success animation (confetti / glow)
+
+7. ORDER SUCCESS SCREEN:
+- “Payment Successful ✅”
+- Order ID
+- Estimated delivery
+- “Continue Shopping” button
+
+8. USER PROFILE:
+- Order history
+- Saved products
+- Skin reports history
+- Settings
+
+⚙️ FUNCTIONAL LOGIC:
+
+- Add to Cart button updates cart count in real-time
+- Cart auto-calculates total price
+- Checkout validates user input
+- Payment button triggers mock payment success
+- Data stored in backend (Firebase / Supabase)
+- API-ready structure for Razorpay / Stripe integration
+
+🔐 BACKEND STRUCTURE:
+
+Collections:
+- Users (id, name, email, address)
+- Products (id, name, price, image, category)
+- Cart (user_id, product_id, quantity)
+- Orders (id, user_id, total, status, payment_method)
+
+🧠 AI INTEGRATION:
+- Input: Camera image
+- Output: Skin analysis JSON
+- Map results → recommended products
+
+💡 EXTRA:
+- Add loading animations
+- Add haptic feedback interactions
+- Make all buttons responsive and clickable
+- Ensure smooth navigation between screens
