@@ -4,6 +4,8 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+**App Brand: Tarsier** — AI Skin Analysis app (rebranded from "AI Beauty Analyzer"). Dark theme with Neon Purple + Electric Blue palette. Tarsier logo with glowing eyes. Space Grotesk + Inter fonts.
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

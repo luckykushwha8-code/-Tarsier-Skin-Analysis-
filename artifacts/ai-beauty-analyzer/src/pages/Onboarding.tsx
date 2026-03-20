@@ -2,31 +2,35 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { Sparkles, ScanFace, Sparkle } from "lucide-react";
+import { ScanFace, Zap, ShieldCheck } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
+import { TarsierLogo } from "@/components/TarsierLogo";
 
 const slides = [
   {
     id: 1,
-    title: "Welcome to AI Beauty",
-    subtitle: "Discover your skin's true potential with advanced AI analysis.",
-    image: "/images/onboarding-1.png",
-    icon: <Sparkles className="w-8 h-8 text-primary" />
+    title: "Meet Tarsier",
+    subtitle: "The AI skin scanner with eyes that see everything. Get a clinical-grade skin analysis in seconds.",
+    icon: <ScanFace className="w-8 h-8" />,
+    gradient: "from-violet-900/60 via-purple-900/30 to-transparent",
+    dotColor: "bg-violet-500",
   },
   {
     id: 2,
-    title: "Analyze Your Skin",
-    subtitle: "Get instant clinical-grade insights using just your smartphone camera.",
-    image: "/images/onboarding-2.png",
-    icon: <ScanFace className="w-8 h-8 text-primary" />
+    title: "Detect. Analyse. Act.",
+    subtitle: "Tarsier detects acne, pigmentation, dark circles, wrinkles and more — then maps a personalised plan.",
+    icon: <Zap className="w-8 h-8" />,
+    gradient: "from-blue-900/60 via-indigo-900/30 to-transparent",
+    dotColor: "bg-blue-500",
   },
   {
     id: 3,
-    title: "Personalized Routines",
-    subtitle: "Receive bespoke skincare recommendations tailored exactly to your needs.",
-    image: "/images/onboarding-3.png",
-    icon: <Sparkle className="w-8 h-8 text-primary" />
-  }
+    title: "Your Skin. Your Routine.",
+    subtitle: "Get AI-matched product recommendations and a step-by-step routine built specifically for your skin.",
+    icon: <ShieldCheck className="w-8 h-8" />,
+    gradient: "from-violet-900/60 via-blue-900/30 to-transparent",
+    dotColor: "bg-indigo-500",
+  },
 ];
 
 export function Onboarding() {
@@ -35,7 +39,7 @@ export function Onboarding() {
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
-      setCurrentSlide(prev => prev + 1);
+      setCurrentSlide((prev) => prev + 1);
     } else {
       handleComplete();
     }
@@ -46,66 +50,75 @@ export function Onboarding() {
     setLocation("/login");
   };
 
+  const slide = slides[currentSlide];
+
   return (
-    <MobileLayout showBottomNav={false} className="bg-card">
-      <div className="flex flex-col h-full relative">
-        <button 
+    <MobileLayout showBottomNav={false}>
+      <div className="flex flex-col h-screen bg-background relative overflow-hidden">
+        {/* Ambient background blobs */}
+        <div className="absolute top-[-80px] left-[-60px] w-64 h-64 rounded-full bg-violet-600/20 blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-[-60px] right-[-60px] w-56 h-56 rounded-full bg-blue-600/20 blur-[80px] pointer-events-none" />
+
+        {/* Skip */}
+        <button
           onClick={handleComplete}
-          className="absolute top-6 right-6 z-20 text-muted-foreground font-medium hover:text-foreground transition-colors"
+          className="absolute top-8 right-6 z-20 text-muted-foreground text-sm font-medium hover:text-foreground transition-colors"
         >
           Skip
         </button>
 
-        <div className="flex-1 relative overflow-hidden bg-secondary/30 rounded-b-[3rem]">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={currentSlide}
-              src={`${import.meta.env.BASE_URL}${slides[currentSlide].image.replace('/images/', 'images/')}`}
-              alt={slides[currentSlide].title}
-              initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90"
-            />
-          </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-        </div>
+        {/* Hero area */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16">
+          {/* Logo */}
+          <motion.div
+            key={currentSlide + "logo"}
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="mb-8"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full blur-2xl bg-violet-600/30 scale-110" />
+              <TarsierLogo size={110} />
+            </div>
+          </motion.div>
 
-        <div className="h-[40%] px-8 py-10 flex flex-col items-center text-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="flex flex-col items-center"
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.35 }}
+              className="flex flex-col items-center text-center"
             >
-              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-6 shadow-sm">
-                {slides[currentSlide].icon}
-              </div>
-              <h1 className="text-3xl font-serif text-foreground mb-3">{slides[currentSlide].title}</h1>
-              <p className="text-muted-foreground leading-relaxed px-4">{slides[currentSlide].subtitle}</p>
+              <h1 className="text-4xl font-serif font-bold mb-4 gradient-text">{slide.title}</h1>
+              <p className="text-muted-foreground text-base leading-relaxed max-w-xs">{slide.subtitle}</p>
             </motion.div>
           </AnimatePresence>
+        </div>
 
-          <div className="mt-auto w-full flex flex-col items-center gap-8">
-            <div className="flex gap-2">
-              {slides.map((_, i) => (
+        {/* Bottom controls */}
+        <div className="px-8 pb-12 flex flex-col items-center gap-8">
+          {/* Progress dots */}
+          <div className="flex gap-2">
+            {slides.map((s, i) => (
+              <button key={i} onClick={() => setCurrentSlide(i)}>
                 <div
-                  key={i}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    i === currentSlide ? "w-8 bg-primary" : "w-2 bg-border"
+                    i === currentSlide ? `w-8 ${s.dotColor}` : "w-2 bg-border"
                   }`}
                 />
-              ))}
-            </div>
-
-            <Button className="w-full" size="lg" onClick={handleNext}>
-              {currentSlide === slides.length - 1 ? "Get Started" : "Next"}
-            </Button>
+              </button>
+            ))}
           </div>
+
+          <button
+            onClick={handleNext}
+            className="btn-neon w-full py-4 rounded-2xl text-white font-semibold text-base"
+          >
+            {currentSlide === slides.length - 1 ? "Get Started" : "Continue"}
+          </button>
         </div>
       </div>
     </MobileLayout>

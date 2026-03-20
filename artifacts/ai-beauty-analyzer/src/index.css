@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: 'DM Sans', sans-serif;
-  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Space Grotesk', sans-serif;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -38,75 +38,63 @@
 }
 
 :root {
-  /* Soft pink and Deep Navy Luxury Theme */
-  --background: 340 25% 98%;      /* Very soft off-white/pink */
-  --foreground: 216 65% 11%;      /* Deep Navy */
+  /* Tarsier — Neon Purple + Black + Electric Blue */
+  --background: 240 20% 5%;         /* Near black with purple tint */
+  --foreground: 240 10% 96%;        /* Near white */
   
-  --primary: 216 65% 11%;         /* Deep Navy for main buttons */
-  --primary-foreground: 0 0% 100%; /* White */
+  --primary: 270 80% 65%;           /* Neon Purple */
+  --primary-foreground: 0 0% 100%;
   
-  --secondary: 346 54% 85%;       /* Soft Muted Pink */
-  --secondary-foreground: 216 65% 11%;
+  --secondary: 260 40% 12%;         /* Deep purple surface */
+  --secondary-foreground: 240 10% 96%;
   
-  --muted: 340 15% 92%;           /* Grayish pink */
-  --muted-foreground: 216 30% 40%;
+  --muted: 240 18% 10%;             /* Darker surface */
+  --muted-foreground: 240 10% 55%;
   
-  --accent: 335 70% 65%;          /* Vibrant soft pink for highlights */
+  --accent: 217 91% 60%;            /* Electric Blue */
   --accent-foreground: 0 0% 100%;
   
-  --card: 0 0% 100%;
-  --card-foreground: 216 65% 11%;
+  --card: 240 22% 8%;               /* Dark card */
+  --card-foreground: 240 10% 96%;
   
-  --border: 340 20% 90%;
-  --input: 340 20% 90%;
-  --ring: 216 65% 11%;
+  --border: 260 25% 16%;
+  --input: 260 25% 14%;
+  --ring: 270 80% 65%;
 
   --success: 142 60% 45%;
   --warning: 38 92% 50%;
   --danger: 348 83% 53%;
 }
 
-.dark {
-  /* Optional dark mode - rich deep navy base */
-  --background: 216 65% 8%;
-  --foreground: 340 25% 98%;
-  
-  --primary: 346 54% 85%;
-  --primary-foreground: 216 65% 11%;
-  
-  --secondary: 216 45% 15%;
-  --secondary-foreground: 340 25% 98%;
-  
-  --muted: 216 40% 18%;
-  --muted-foreground: 216 20% 70%;
-  
-  --accent: 335 70% 65%;
-  --accent-foreground: 0 0% 100%;
-  
-  --card: 216 50% 12%;
-  --card-foreground: 340 25% 98%;
-  
-  --border: 216 40% 20%;
-  --input: 216 40% 20%;
-  --ring: 346 54% 85%;
-}
-
 @layer base {
   body {
-    @apply bg-zinc-100 text-foreground antialiased font-sans flex justify-center;
+    @apply bg-zinc-950 text-foreground antialiased font-sans flex justify-center;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-medium tracking-tight;
+    @apply font-serif font-semibold tracking-tight;
   }
 
-  /* The main app container to constrain mobile view on desktop */
   #root {
     @apply w-full h-full min-h-screen flex justify-center;
   }
 }
 
-/* Custom scrollbar for mobile container */
+/* Tarsier neon glow utilities */
+.glow-purple {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.15);
+}
+.glow-blue {
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.4), 0 0 60px rgba(96, 165, 250, 0.15);
+}
+.glow-text-purple {
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+}
+.glow-text-blue {
+  text-shadow: 0 0 20px rgba(96, 165, 250, 0.6);
+}
+
+/* Custom scrollbar */
 .app-scroll-container::-webkit-scrollbar {
   width: 4px;
 }
@@ -117,19 +105,38 @@
   @apply bg-border rounded-full;
 }
 
-/* Glassmorphism utilities */
+/* Glassmorphism */
 .glass {
-  @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
-}
-.dark .glass {
-  @apply bg-card/70 backdrop-blur-md border border-white/5;
+  @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-sm;
 }
 
-/* Hide scrollbar completely for horizontal scrolling lists */
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Neon gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #A855F7 0%, #60A5FA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Neon button glow on hover */
+.btn-neon {
+  background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.4);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+.btn-neon:hover {
+  box-shadow: 0 4px 40px rgba(124, 58, 237, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+.btn-neon:active {
+  transform: translateY(0);
 }
