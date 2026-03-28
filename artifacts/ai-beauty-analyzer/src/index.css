@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: "Inter", sans-serif;
+  --font-family-display: "Space Grotesk", sans-serif;
+
+  --color-neon-purple: #9333ea;
+  --color-neon-purple-light: #a855f7;
+  --color-neon-purple-dark: #7e22ce;
+  --color-electric-blue: #3b82f6;
+  --color-electric-blue-light: #60a5fa;
+  --color-electric-blue-dark: #2563eb;
+
+  --color-dark-bg: #0f0f1a;
+  --color-dark-surface: #1a1a2e;
+  --color-dark-card: #252542;
+  --color-dark-border: #363654;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  background-color: var(--color-dark-bg);
+  color: #ffffff;
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-family-display);
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-neon-purple) 0%,
+      var(--color-electric-blue) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  }
+
+  .glow-eyes {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 8px var(--color-neon-purple))
+        drop-shadow(0 0 16px var(--color-electric-blue));
+    }
+    50% {
+      filter: drop-shadow(0 0 12px var(--color-neon-purple-light))
+        drop-shadow(0 0 24px var(--color-electric-blue-light));
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-dark-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neon-purple);
+}
