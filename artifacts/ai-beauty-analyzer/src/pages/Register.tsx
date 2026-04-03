@@ -56,7 +56,7 @@ export function Register() {
 
           {/* Headline at top */}
           <div className="mb-4">
-            <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">Tarsier</p>
+            <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">GlowUp</p>
             <h1 className="text-3xl font-serif font-bold text-white">Glow up starts here ✨</h1>
             <p className="text-white/50 text-sm mt-1.5">Create your account & let AI do the work</p>
           </div>

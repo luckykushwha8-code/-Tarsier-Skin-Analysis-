@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
-import { TarsierLogo } from "@/components/TarsierLogo";
+import { GlowUpLogo } from "@/components/GlowUpLogo";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Settings, Bell, Shield, HelpCircle, LogOut, ChevronRight,
@@ -77,7 +77,7 @@ export function Profile() {
 
   // ── Edit profile state ──
   const [editName, setEditName] = useState(user?.name || "Luminous User");
-  const [editEmail, setEditEmail] = useState(user?.email || "demo@tarsier.ai");
+  const [editEmail, setEditEmail] = useState(user?.email || "demo@glowup.ai");
   const [editSkinType, setEditSkinType] = useState(user?.skinType || "Combination");
   const [editConcern, setEditConcern] = useState("Hydration");
   const [editAge, setEditAge] = useState("25");
@@ -88,7 +88,7 @@ export function Profile() {
     const updated = {
       id: (user as any)?.id || "usr_demo",
       name: editName.trim() || "Luminous User",
-      email: editEmail.trim() || "demo@tarsier.ai",
+      email: editEmail.trim() || "demo@glowup.ai",
       skinType: editSkinType,
     };
     localStorage.setItem("auth_user", JSON.stringify(updated));
@@ -146,7 +146,7 @@ export function Profile() {
                 src={`${import.meta.env.BASE_URL}images/avatar.png`}
                 alt="Profile"
                 className="w-full h-full object-cover"
-                onError={(e) => { (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/avataaars/svg?seed=tarsier"; }}
+                onError={(e) => { (e.target as HTMLImageElement).src = "https://api.dicebear.com/7.x/avataaars/svg?seed=glowup"; }}
               />
             </div>
             {/* Camera overlay */}
@@ -234,8 +234,8 @@ export function Profile() {
 
         {/* Branding */}
         <div className="flex flex-col items-center gap-2 mb-6">
-          <TarsierLogo size={32} />
-          <p className="text-xs text-muted-foreground">Tarsier v1.0 · AI Skin Analysis</p>
+          <GlowUpLogo size={32} />
+          <p className="text-xs text-muted-foreground">GlowUp v1.0 · AI Skin Analysis</p>
         </div>
 
         <button
@@ -255,7 +255,7 @@ export function Profile() {
           <div className="flex items-center gap-4 p-3 bg-secondary/20 rounded-2xl border border-border">
             <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/30 flex-shrink-0">
               <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=tarsier"
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=glowup"
                 alt="avatar"
                 className="w-full h-full object-cover"
               />
@@ -361,7 +361,7 @@ export function Profile() {
 
       {/* ══ NOTIFICATIONS ══════════════════════════════════════════════════ */}
       <BottomSheet open={panel === "notifications"} onClose={() => setPanel(null)} title="Notifications">
-        <p className="text-xs text-muted-foreground mb-5">Choose which notifications you want to receive from Tarsier.</p>
+        <p className="text-xs text-muted-foreground mb-5">Choose which notifications you want to receive from GlowUp.</p>
         <div className="space-y-4">
           {[
             { key: "scanComplete", label: "Scan Complete", desc: "When your AI analysis is ready" },
@@ -387,7 +387,7 @@ export function Profile() {
       <BottomSheet open={panel === "privacy"} onClose={() => setPanel(null)} title="Privacy & Data">
         <div className="space-y-4">
           {[
-            { title: "Data We Collect", body: "Tarsier collects your skin scan images and analysis results locally on your device. No images are stored on our servers without your explicit consent." },
+            { title: "Data We Collect", body: "GlowUp collects your skin scan images and analysis results locally on your device. No images are stored on our servers without your explicit consent." },
             { title: "How We Use It", body: "Your data is used exclusively to power your personalised skin reports and routine recommendations. It is never sold to third parties." },
             { title: "Your Rights", body: "You can delete all your data at any time by signing out and clearing app data. All stored information is removed permanently." },
           ].map(({ title, body }) => (
@@ -407,7 +407,7 @@ export function Profile() {
         <div className="space-y-5">
           {[
             { key: "darkMode", icon: Moon, label: "Dark Mode", desc: "Use dark theme (recommended)" },
-            { key: "analytics", icon: BarChart2, label: "Usage Analytics", desc: "Help improve Tarsier with anonymous usage data" },
+            { key: "analytics", icon: BarChart2, label: "Usage Analytics", desc: "Help improve GlowUp with anonymous usage data" },
             { key: "weeklyTips", icon: BookOpen, label: "Weekly Skincare Tips", desc: "Receive curated tip emails every Monday" },
             { key: "advancedMetrics", icon: Zap, label: "Advanced Metrics", desc: "Show detailed breakdowns in scan reports" },
           ].map(({ key, icon: Icon, label, desc }) => (
@@ -434,10 +434,10 @@ export function Profile() {
       <BottomSheet open={panel === "help"} onClose={() => setPanel(null)} title="Help & Support">
         <div className="space-y-3">
           {[
-            { icon: Mail, label: "Email Support", sub: "support@tarsier.ai", href: "mailto:support@tarsier.ai" },
+            { icon: Mail, label: "Email Support", sub: "support@glowup.ai", href: "mailto:support@glowup.ai" },
             { icon: MessageCircle, label: "Live Chat", sub: "Typically replies in < 1 hour", href: "#" },
-            { icon: BookOpen, label: "Knowledge Base", sub: "Guides, tips, and FAQs", href: "https://tarsier.ai/help" },
-            { icon: ExternalLink, label: "Terms of Service", sub: "tarsier.ai/terms", href: "https://tarsier.ai/terms" },
+            { icon: BookOpen, label: "Knowledge Base", sub: "Guides, tips, and FAQs", href: "https://glowup.ai/help" },
+            { icon: ExternalLink, label: "Terms of Service", sub: "glowup.ai/terms", href: "https://glowup.ai/terms" },
           ].map(({ icon: Icon, label, sub, href }) => (
             <a
               key={label}
@@ -457,7 +457,7 @@ export function Profile() {
             </a>
           ))}
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-6">Tarsier v1.0.0 · Built with ❤️ for your skin</p>
+        <p className="text-center text-xs text-muted-foreground mt-6">GlowUp v1.0.0 · Built with ❤️ for your skin</p>
       </BottomSheet>
     </MobileLayout>
   );

@@ -25,7 +25,7 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem("tarsier_cart");
+      const saved = localStorage.getItem("glowup_cart");
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -33,7 +33,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem("tarsier_cart", JSON.stringify(items));
+    localStorage.setItem("glowup_cart", JSON.stringify(items));
   }, [items]);
 
   const addItem = (item: Omit<CartItem, "quantity">) => {

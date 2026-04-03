@@ -45,7 +45,7 @@ export function Report() {
     try {
       const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#02040a" });
       const link = document.createElement("a");
-      link.download = `Tarsier-Report-${report?.id || "latest"}.png`;
+      link.download = `GlowUp-Report-${report?.id || "latest"}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
       toast({ title: "Success", description: "Report downloaded successfully." });
@@ -59,7 +59,7 @@ export function Report() {
       <MobileLayout>
         <div className="flex h-full items-center justify-center flex-col gap-4 min-h-screen">
           <div className="w-16 h-16 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
-          <p className="text-muted-foreground text-sm">Tarsier is analysing...</p>
+          <p className="text-muted-foreground text-sm">GlowUp is analysing...</p>
         </div>
       </MobileLayout>
     );

@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Mail, Lock } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { MobileLayout } from "@/components/MobileLayout";
-import { TarsierLogo } from "@/components/TarsierLogo";
+import { GlowUpLogo } from "@/components/GlowUpLogo";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,9 +56,9 @@ export function Login() {
           <div className="flex flex-col items-center pt-10 pb-8">
             <div className="relative mb-4">
               <div className="absolute inset-0 rounded-full blur-2xl bg-violet-600/40 scale-125" />
-              <TarsierLogo size={72} />
+              <GlowUpLogo size={72} />
             </div>
-            <h1 className="text-3xl font-serif font-bold gradient-text tracking-tight">Tarsier</h1>
+            <h1 className="text-3xl font-serif font-bold gradient-text tracking-tight">GlowUp</h1>
             <p className="text-white/60 text-sm mt-1">your AI skin bestie ✨</p>
           </div>
 

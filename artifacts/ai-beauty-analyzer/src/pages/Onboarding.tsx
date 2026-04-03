@@ -3,12 +3,12 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScanFace, Zap, ShieldCheck } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
-import { TarsierLogo } from "@/components/TarsierLogo";
+import { GlowUpLogo } from "@/components/GlowUpLogo";
 
 const slides = [
   {
     id: 1,
-    title: "Meet Tarsier",
+    title: "Meet GlowUp",
     subtitle: "The AI skin scanner with eyes that see everything. Clinical-grade analysis in seconds.",
     icon: <ScanFace className="w-6 h-6 text-white" />,
     image: "https://images.unsplash.com/photo-1512310604669-443f26c35f52?w=800&q=90",
@@ -18,7 +18,7 @@ const slides = [
   {
     id: 2,
     title: "Detect. Analyse. Act.",
-    subtitle: "Tarsier spots acne, dark circles, pigmentation & more — then builds your plan.",
+    subtitle: "GlowUp spots acne, dark circles, pigmentation & more — then builds your plan.",
     icon: <Zap className="w-6 h-6 text-white" />,
     image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=90",
     tint: "bg-blue-950/50",
@@ -93,8 +93,8 @@ export function Onboarding() {
 
         {/* Logo top-left */}
         <div className="absolute top-8 left-6 z-20 flex items-center gap-2">
-          <TarsierLogo size={32} />
-          <span className="text-white font-serif font-bold text-base">Tarsier</span>
+          <GlowUpLogo size={32} />
+          <span className="text-white font-serif font-bold text-base">GlowUp</span>
         </div>
 
         {/* Bottom content */}

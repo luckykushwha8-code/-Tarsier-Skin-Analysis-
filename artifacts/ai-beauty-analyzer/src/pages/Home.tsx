@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Bell, Camera, ListChecks, ShoppingBag, TrendingUp, ChevronRight, Eye, X, CheckCheck, Zap, Droplets, Star, Flame, Lightbulb } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { ProgressRing } from "@/components/ProgressRing";
-import { TarsierLogo } from "@/components/TarsierLogo";
+import { GlowUpLogo } from "@/components/GlowUpLogo";
 import { useAuth } from "@/hooks/use-auth";
 import { useScanHistory } from "@/hooks/use-skincare";
 import { format } from "date-fns";
@@ -27,8 +27,8 @@ export function Home() {
 
   useEffect(() => {
     // Determine Streak
-    let currentStreak = parseInt(localStorage.getItem("tarsier_streak") || "0");
-    const lastVisit = localStorage.getItem("tarsier_last_visit");
+    let currentStreak = parseInt(localStorage.getItem("glowup_streak") || "0");
+    const lastVisit = localStorage.getItem("glowup_last_visit");
     const today = new Date().toDateString();
     
     if (lastVisit !== today) {
@@ -37,8 +37,8 @@ export function Home() {
       } else {
         currentStreak = currentStreak === 0 ? 1 : currentStreak; // default 1 if starting
       }
-      localStorage.setItem("tarsier_streak", currentStreak.toString());
-      localStorage.setItem("tarsier_last_visit", today);
+      localStorage.setItem("glowup_streak", currentStreak.toString());
+      localStorage.setItem("glowup_last_visit", today);
     }
     setStreak(currentStreak);
   }, []);
@@ -74,7 +74,7 @@ export function Home() {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const el = e.target as HTMLImageElement;
-                    el.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=tarsier";
+                    el.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=glowup";
                   }}
                 />
               </div>
@@ -196,7 +196,7 @@ export function Home() {
           ))}
           {(!scans || scans.length === 0) && (
             <div className="text-center py-10 text-muted-foreground text-sm">
-              <TarsierLogo size={48} />
+              <GlowUpLogo size={48} />
               <p className="mt-3">No scans yet — take your first one above!</p>
             </div>
           )}

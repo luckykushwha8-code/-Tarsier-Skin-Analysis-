@@ -38,7 +38,7 @@
 }
 
 :root {
-  /* Tarsier — Neon Purple + Black + Electric Blue */
+  /* GlowUp — Neon Purple + Black + Electric Blue */
   --background: 240 20% 5%;         /* Near black with purple tint */
   --foreground: 240 10% 96%;        /* Near white */
   
@@ -80,7 +80,7 @@
   }
 }
 
-/* Tarsier neon glow utilities */
+/* GlowUp neon glow utilities */
 .glow-purple {
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 60px rgba(139, 92, 246, 0.15);
 }

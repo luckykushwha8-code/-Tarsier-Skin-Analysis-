@@ -9,7 +9,7 @@ export function ProgressRing({ score, size = 180, strokeWidth = 14, label }: Pro
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (score / 100) * circumference;
-  const gradId = `tarsier-grad-${size}`;
+  const gradId = `glowup-grad-${size}`;
 
   const scoreLabel =
     label ||

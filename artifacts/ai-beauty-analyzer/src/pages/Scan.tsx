@@ -14,7 +14,7 @@ const SCAN_STEPS = [
   "Running facial geometry mapping...",
   "Analyzing pigmentation & dark spots...",
   "Measuring hydration levels...",
-  "Calculating final Tarsier score..."
+  "Calculating final GlowUp score..."
 ];
 
 export function Scan() {
@@ -74,7 +74,7 @@ export function Scan() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-2">
               <Eye className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">Tarsier</span>
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">GlowUp</span>
             </div>
             <h1 className="text-3xl font-serif font-bold gradient-text mb-2">Skin Profile</h1>
             <p className="text-muted-foreground text-sm">Tell us about your skin so the AI can tailor your analysis.</p>
@@ -155,7 +155,7 @@ export function Scan() {
           </button>
           <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
             <Eye className="w-4 h-4 text-violet-400" />
-            <span className="text-white text-sm font-semibold">Tarsier AI</span>
+            <span className="text-white text-sm font-semibold">GlowUp AI</span>
           </div>
           <button
             onClick={() => setFlash(!flash)}
