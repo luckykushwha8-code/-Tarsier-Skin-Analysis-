@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Zap, Image as ImageIcon, Eye } from "lucide-react";
+import { ChevronLeft, Zap, Image as ImageIcon, Eye, Loader2 } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const SKIN_TYPES = ["Normal", "Oily", "Dry", "Combination", "Sensitive"];
 const CONCERNS = ["Acne", "Dark Circles", "Pigmentation", "Dryness", "Oiliness", "Wrinkles", "Sensitivity", "Dark Spots"];
+
+const SCAN_STEPS = [
+  "Uploading image securely...",
+  "Running facial geometry mapping...",
+  "Analyzing pigmentation & dark spots...",
+  "Measuring hydration levels...",
+  "Calculating final Tarsier score..."
+];
 
 export function Scan() {
   const [, setLocation] = useLocation();
@@ -16,6 +24,7 @@ export function Scan() {
   const [age, setAge] = useState("25");
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanProgressIndex, setScanProgressIndex] = useState(0);
   const [flash, setFlash] = useState(false);
 
   const toggleConcern = (c: string) => {
@@ -24,6 +33,15 @@ export function Scan() {
 
   const handleCapture = async () => {
     setIsScanning(true);
+    setScanProgressIndex(0);
+
+    // Simulate multi-step AI analysis
+    for (let i = 0; i < SCAN_STEPS.length; i++) {
+        setScanProgressIndex(i);
+        // Wait 1.2s per step to build suspense
+        await new Promise(r => setTimeout(r, 1200));
+    }
+
     try {
       const res = await fetch(`${BASE}/api/scans`, {
         method: "POST",
@@ -35,10 +53,9 @@ export function Scan() {
         }),
       });
       const scan = await res.json();
-      await new Promise((r) => setTimeout(r, 2000));
       setLocation(`/report/${scan.id}`);
     } catch {
-      await new Promise((r) => setTimeout(r, 2000));
+      // Mock fallback
       setLocation("/report/latest");
     }
   };
@@ -130,9 +147,9 @@ export function Scan() {
 
   return (
     <MobileLayout showBottomNav={false}>
-      <div className="h-screen w-full bg-black relative overflow-hidden flex flex-col">
+      <div className="h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col">
         {/* Top Bar */}
-        <div className="absolute top-0 w-full z-20 p-6 flex justify-between items-center">
+        <div className="absolute top-0 w-full z-20 p-6 flex justify-between items-center pb-safe">
           <button onClick={() => setStep("profile")} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white">
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -149,19 +166,23 @@ export function Scan() {
         </div>
 
         {/* Camera Feed */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 transition-opacity duration-1000">
           <img
             src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=80"
             alt="Camera Feed"
-            className="w-full h-full object-cover opacity-70"
+            className={`w-full h-full object-cover transition-all duration-1000 ${isScanning ? "opacity-30 blur-sm scale-105" : "opacity-80"}`}
           />
-          <div className="absolute inset-0 bg-black/50" />
+          <div className={`absolute inset-0 transition-colors duration-1000 ${isScanning ? "bg-black/80" : "bg-black/30"}`} />
         </div>
 
         {/* Face oval */}
         <div className="absolute inset-0 z-5 flex items-center justify-center pointer-events-none" style={{ paddingBottom: "10%" }}>
           <div
-            className="border-2 border-violet-400/60 rounded-[50%] shadow-[0_0_30px_rgba(139,92,246,0.3),inset_0_0_30px_rgba(139,92,246,0.05)]"
+            className={`border-2 rounded-[50%] transition-all duration-1000 ${
+              isScanning 
+              ? "border-primary shadow-[0_0_40px_rgba(139,92,246,0.6),inset_0_0_40px_rgba(139,92,246,0.2)] scale-110" 
+              : "border-white/40 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"
+            }`}
             style={{ width: "65%", height: "55%" }}
           />
         </div>
@@ -169,50 +190,62 @@ export function Scan() {
         {/* Scan animation */}
         {isScanning && (
           <div
-            className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
-            style={{ clipPath: "ellipse(32.5% 27.5% at 50% 43%)" }}
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
           >
             <motion.div
-              initial={{ top: "10%" }}
-              animate={{ top: ["10%", "90%", "10%"] }}
-              transition={{ duration: 1.8, ease: "linear", repeat: Infinity }}
-              className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-violet-400 to-transparent shadow-[0_0_16px_rgba(139,92,246,0.9)]"
-            />
-            <div className="absolute inset-0 bg-violet-500/10 mix-blend-overlay" />
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-black/50 backdrop-blur-md rounded-2xl p-6 flex flex-col items-center border border-white/10"
+            >
+              <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+              <div className="text-white text-base font-semibold mb-1">AI Processing</div>
+              
+              {/* Dynamic Text */}
+              <div className="h-5 relative w-64 overflow-hidden mb-3">
+                <AnimatePresence mode="popLayout">
+                  <motion.p
+                    key={scanProgressIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-primary text-sm font-medium text-center absolute w-full"
+                  >
+                    {SCAN_STEPS[scanProgressIndex]}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+
+              {/* Progress Bar Line */}
+              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
+                <motion.div 
+                  className="h-full bg-primary"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${((scanProgressIndex + 1) / SCAN_STEPS.length) * 100}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </motion.div>
           </div>
         )}
 
         {/* Bottom */}
-        <div className="absolute bottom-0 w-full z-20 pb-12 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col items-center">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={isScanning ? "scanning" : "idle"}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="text-white mb-8 text-sm font-medium bg-white/10 backdrop-blur-sm px-6 py-2.5 rounded-full border border-white/10"
-            >
-              {isScanning ? "Tarsier is analysing your skin..." : "Align your face inside the oval"}
-            </motion.p>
-          </AnimatePresence>
+        <div className={`absolute bottom-0 w-full z-20 pb-safe pt-10 pb-12 bg-gradient-to-t from-black via-black/90 to-transparent flex flex-col items-center transition-all duration-700 ${isScanning ? "translate-y-full opacity-0" : ""}`}>
+          <p className="text-white mb-8 text-sm font-medium bg-white/10 backdrop-blur-sm px-6 py-2.5 rounded-full border border-white/10 shadow-lg">
+            Align your face inside the oval
+          </p>
 
           <div className="flex items-center justify-center gap-12">
-            <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10">
+            <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
               <ImageIcon className="w-5 h-5" />
             </button>
 
             <button
               onClick={handleCapture}
-              disabled={isScanning}
-              className="relative w-20 h-20 rounded-full flex items-center justify-center disabled:opacity-70"
+              className="relative w-20 h-20 rounded-full flex items-center justify-center"
             >
-              <div className="absolute inset-0 rounded-full border-2 border-violet-400/60 shadow-[0_0_24px_rgba(139,92,246,0.5)]" />
-              <div
-                className={`w-15 h-15 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 shadow-[0_0_20px_rgba(139,92,246,0.8)] transition-transform ${
-                  isScanning ? "scale-75 animate-pulse" : "scale-100 hover:scale-95"
-                }`}
-                style={{ width: 60, height: 60 }}
-              />
+              <div className="absolute inset-0 rounded-full border-[3px] border-white/60" />
+              <div className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 transition-colors active:scale-95" />
             </button>
 
             <div className="w-12 h-12" />
@@ -222,3 +255,4 @@ export function Scan() {
     </MobileLayout>
   );
 }
+

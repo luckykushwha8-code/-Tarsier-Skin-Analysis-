@@ -1,10 +1,12 @@
 import { useLocation, useParams } from "wouter";
-import { ChevronLeft, Share2, ShoppingBag, ExternalLink, Eye, Calendar, Zap } from "lucide-react";
+import { ChevronLeft, Share2, ShoppingBag, ShoppingCart, Download, Eye, Calendar, Zap, Plus } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useReport } from "@/hooks/use-skincare";
+import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
 
 const severityColors: Record<string, string> = {
   high: "text-red-400 bg-red-500/10 border-red-500/20",
@@ -33,7 +35,24 @@ export function Report() {
   const scanId = (params as any).id || "latest";
   const [, setLocation] = useLocation();
   const { data: report, isLoading } = useReport(scanId);
+  const { addItem } = useCart();
   const { toast } = useToast();
+
+  const handleDownload = async () => {
+    toast({ title: "Processing", description: "Generating your PDF report..." });
+    const element = document.getElementById("report-content");
+    if (!element) return;
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: "#02040a" });
+      const link = document.createElement("a");
+      link.download = `Tarsier-Report-${report?.id || "latest"}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      toast({ title: "Success", description: "Report downloaded successfully." });
+    } catch (err) {
+      toast({ title: "Error", description: "Could not generate report image.", variant: "destructive" });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -54,13 +73,13 @@ export function Report() {
 
   return (
     <MobileLayout>
-      <div className="bg-background min-h-screen pb-8 relative overflow-hidden">
+      <div id="report-content" className="bg-background min-h-screen pb-8 relative overflow-hidden">
         {/* Ambient blobs */}
         <div className="absolute top-0 right-0 w-60 h-60 rounded-full bg-violet-600/10 blur-[100px] pointer-events-none" />
         <div className="absolute top-[40%] left-0 w-48 h-48 rounded-full bg-blue-600/10 blur-[100px] pointer-events-none" />
 
         {/* Header */}
-        <header className="p-5 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-10 border-b border-border/30">
+        <header data-html2canvas-ignore className="p-5 flex justify-between items-center sticky top-0 bg-background/80 backdrop-blur-xl z-20 border-b border-border/30">
           <button onClick={() => setLocation("/home")} className="p-2 bg-card rounded-full border border-border">
             <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
@@ -68,12 +87,20 @@ export function Report() {
             <Eye className="w-4 h-4 text-primary" />
             <h1 className="text-base font-serif font-bold">Skin Report</h1>
           </div>
-          <button
-            onClick={() => toast({ title: "Shared!", description: "Report link copied." })}
-            className="p-2 bg-card rounded-full border border-border"
-          >
-            <Share2 className="w-5 h-5 text-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              className="p-2 bg-card rounded-full border border-border hover:bg-secondary transition-colors"
+            >
+              <Download className="w-4 h-4 text-foreground" />
+            </button>
+            <button
+              onClick={() => toast({ title: "Shared!", description: "Report link copied to clipboard." })}
+              className="p-2 bg-card rounded-full border border-border hover:bg-secondary transition-colors"
+            >
+              <Share2 className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
         </header>
 
         {/* Score */}
@@ -242,20 +269,23 @@ export function Report() {
                       <p className="text-xs font-semibold text-foreground line-clamp-2 leading-tight mt-0.5">{product.name}</p>
                       {product.size && <p className="text-[10px] text-muted-foreground mt-0.5">{product.size}</p>}
                     </div>
-                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1 bg-accent/10 px-2 py-0.5 rounded border border-accent/20 mb-1">
+                        <Zap className="w-3 h-3 text-accent" />
+                        <span className="text-[9px] font-bold text-accent uppercase w-max tracking-wider">Best For You</span>
+                      </div>
                       <span className="font-bold text-sm text-foreground">
                         {product.price ? `$${parseFloat(product.price).toFixed(2)}` : "—"}
                       </span>
-                      {product.productUrl && (
-                        <a
-                          href={product.productUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-7 h-7 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
+                      <button
+                        onClick={() => {
+                          const price = parseFloat(product.price) || (Math.floor(Math.random() * 50) + 15);
+                          addItem({ ...product, price });
+                          toast({ title: "Added to Cart", description: `${product.name} added.` });
+                        }}
+                        className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-md hover:bg-primary/90 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}

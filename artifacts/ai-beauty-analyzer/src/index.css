@@ -140,3 +140,13 @@
 .btn-neon:active {
   transform: translateY(0);
 }
+
+/* Mobile Performance & Touch Targets */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 100px;
+}
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}

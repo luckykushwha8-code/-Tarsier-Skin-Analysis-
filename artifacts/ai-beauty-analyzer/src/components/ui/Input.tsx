@@ -1,34 +1,22 @@
-import React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react"
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon?: React.ReactNode;
-  error?: string;
-}
+import { cn } from "@/lib/utils"
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, icon, error, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
+  ({ className, type, ...props }, ref) => {
     return (
-      <div className="w-full relative">
-        {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-            {icon}
-          </div>
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          className
         )}
-        <input
-          ref={ref}
-          className={cn(
-            "w-full bg-card border-2 border-border/50 rounded-2xl px-4 py-4 text-foreground placeholder:text-muted-foreground/70",
-            "focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/30 transition-all duration-300",
-            icon && "pl-12",
-            error && "border-danger focus:border-danger focus:ring-danger/20",
-            className
-          )}
-          {...props}
-        />
-        {error && <p className="text-danger text-sm mt-1.5 ml-2">{error}</p>}
-      </div>
-    );
+        ref={ref}
+        {...props}
+      />
+    )
   }
-);
-Input.displayName = "Input";
+)
+Input.displayName = "Input"
+
+export { Input }

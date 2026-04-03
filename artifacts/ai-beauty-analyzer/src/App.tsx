@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { CartProvider } from "@/hooks/use-cart";
 
 // Pages
 import { Onboarding } from "@/pages/Onboarding";
@@ -16,6 +17,8 @@ import { Products } from "@/pages/Products";
 import { Progress } from "@/pages/Progress";
 import { Subscription } from "@/pages/Subscription";
 import { Profile } from "@/pages/Profile";
+import { Cart } from "@/pages/Cart";
+import { Checkout } from "@/pages/Checkout";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -28,15 +31,11 @@ const queryClient = new QueryClient({
 });
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const [location, setLocation] = useLocation();
-  
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token && location !== "/login" && location !== "/register" && location !== "/") {
-      setLocation("/login");
-    }
-  }, [location, setLocation]);
-
+  // Auto-set mock token so pages are always accessible without login
+  if (!localStorage.getItem("auth_token")) {
+    localStorage.setItem("auth_token", "demo-token");
+    localStorage.setItem("auth_user", JSON.stringify({ id: "usr_demo", name: "Luminous User", email: "demo@tarsier.ai", skinType: "Combination" }));
+  }
   return <Component />;
 }
 
@@ -44,15 +43,15 @@ function Router() {
   const [location, setLocation] = useLocation();
 
   useEffect(() => {
-    // Basic root routing logic
+    // Auto-set mock credentials and route root path
+    if (!localStorage.getItem("auth_token")) {
+      localStorage.setItem("auth_token", "demo-token");
+      localStorage.setItem("auth_user", JSON.stringify({ id: "usr_demo", name: "Luminous User", email: "demo@tarsier.ai", skinType: "Combination" }));
+    }
     if (location === "/") {
       const hasSeenOnboarding = localStorage.getItem("onboarding_seen");
-      const token = localStorage.getItem("auth_token");
-      
-      if (token) {
+      if (hasSeenOnboarding) {
         setLocation("/home");
-      } else if (hasSeenOnboarding) {
-        setLocation("/login");
       }
     }
   }, [location, setLocation]);
@@ -72,6 +71,8 @@ function Router() {
       <Route path="/progress" component={() => <ProtectedRoute component={Progress} />} />
       <Route path="/subscription" component={() => <ProtectedRoute component={Subscription} />} />
       <Route path="/profile" component={() => <ProtectedRoute component={Profile} />} />
+      <Route path="/cart" component={() => <ProtectedRoute component={Cart} />} />
+      <Route path="/checkout" component={() => <ProtectedRoute component={Checkout} />} />
       
       <Route component={NotFound} />
     </Switch>
@@ -81,12 +82,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </CartProvider>
     </QueryClientProvider>
   );
 }

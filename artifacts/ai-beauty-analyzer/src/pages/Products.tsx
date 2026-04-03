@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Search, Heart, Plus, ShoppingBag } from "lucide-react";
+import { useLocation } from "wouter";
+import { Search, Heart, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { useProducts } from "@/hooks/use-skincare";
+import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
@@ -17,10 +19,12 @@ const CATEGORIES = [
 ];
 
 export function Products() {
+  const [, setLocation] = useLocation();
   const [activeCat, setActiveCat] = useState("All");
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const { toast } = useToast();
+  const { addItem, totalItems } = useCart();
 
   const { data: products, isLoading } = useProducts({
     category: activeCat === "All" ? undefined : activeCat,
@@ -37,15 +41,17 @@ export function Products() {
     });
   };
 
-  const handleAdd = (name: string) => {
-    toast({ title: "Added to Routine", description: `${name} has been added to your routine.` });
+  const handleAdd = (product: any) => {
+    const price = parseFloat(product.price) || (Math.floor(Math.random() * 50) + 15);
+    addItem({ ...product, price });
+    toast({ title: "Added to Cart", description: `${product.name} has been added.` });
   };
 
   return (
     <MobileLayout>
-      <div className="p-5">
-        <header className="mb-5">
-          <div className="flex items-center gap-3 mb-1">
+      <div className="p-5 pb-24">
+        <header className="mb-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-primary" />
             </div>
@@ -56,6 +62,19 @@ export function Products() {
               </p>
             </div>
           </div>
+          
+          {/* Cart Icon */}
+          <button 
+            onClick={() => setLocation("/cart")}
+            className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:bg-secondary/50 relative"
+          >
+            <ShoppingCart className="w-5 h-5 text-foreground" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </button>
         </header>
 
         {/* Search */}
@@ -142,7 +161,7 @@ export function Products() {
                       {product.price ? `$${parseFloat(product.price).toFixed(2)}` : "—"}
                     </span>
                     <button
-                      onClick={() => handleAdd(product.name)}
+                      onClick={() => handleAdd(product)}
                       className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
