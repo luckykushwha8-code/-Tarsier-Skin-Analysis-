@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, ShoppingBag, Star } from "lucide-react";
+import { Heart, Search, ShoppingBag, Star } from "lucide-react";
 import { isSupabaseReady, supabase } from "../lib/supabase";
 
 type ProductRow = {
@@ -44,6 +44,11 @@ export default function Products() {
   const [selectedSkinType, setSelectedSkinType] = useState("all");
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
   const [hasScanProfile, setHasScanProfile] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [routineItems, setRoutineItems] = useState<string[]>([]);
+
+  const favoritesKey = "favoriteProducts";
+  const routineKey = "routineItems";
 
   useEffect(() => {
     let isActive = true;
@@ -94,6 +99,27 @@ export default function Products() {
       }
     } catch {
       setHasScanProfile(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const rawFavorites = window.localStorage.getItem(favoritesKey);
+    if (rawFavorites) {
+      try {
+        setFavorites(JSON.parse(rawFavorites));
+      } catch {
+        setFavorites([]);
+      }
+    }
+
+    const rawRoutine = window.localStorage.getItem(routineKey);
+    if (rawRoutine) {
+      try {
+        const parsed = JSON.parse(rawRoutine) as { name: string }[];
+        setRoutineItems(parsed.map((item) => item.name));
+      } catch {
+        setRoutineItems([]);
+      }
     }
   }, []);
 
@@ -314,16 +340,59 @@ export default function Products() {
                 <span className="font-semibold">{product.price ?? "-"}</span>
               </div>
 
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  className="py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-neon-purple/20 transition-colors"
+                  onClick={() => {
+                    if (product.affiliate_link) {
+                      window.open(product.affiliate_link, "_blank", "noopener");
+                    }
+                  }}
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Buy Now
+                </button>
+                <button
+                  className="py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-electric-blue/20 transition-colors"
+                  onClick={() => {
+                    const next = routineItems.includes(product.name)
+                      ? routineItems
+                      : [...routineItems, product.name];
+                    setRoutineItems(next);
+                    const stored = next.map((name) => ({
+                      name,
+                      time: "morning",
+                    }));
+                    window.localStorage.setItem(
+                      routineKey,
+                      JSON.stringify(stored),
+                    );
+                  }}
+                >
+                  {routineItems.includes(product.name) ? "Added" : "Add"}
+                </button>
+              </div>
+
               <button
-                className="w-full mt-3 py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-neon-purple/20 transition-colors"
+                className="mt-3 w-full flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-white"
                 onClick={() => {
-                  if (product.affiliate_link) {
-                    window.open(product.affiliate_link, "_blank", "noopener");
-                  }
+                  const next = favorites.includes(product.name)
+                    ? favorites.filter((name) => name !== product.name)
+                    : [...favorites, product.name];
+                  setFavorites(next);
+                  window.localStorage.setItem(favoritesKey, JSON.stringify(next));
                 }}
               >
-                <ShoppingBag className="w-4 h-4" />
-                Buy Now
+                <Heart
+                  className={`w-4 h-4 ${
+                    favorites.includes(product.name)
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-400"
+                  }`}
+                />
+                {favorites.includes(product.name)
+                  ? "Saved to favorites"
+                  : "Save to favorites"}
               </button>
             </motion.div>
           ))}

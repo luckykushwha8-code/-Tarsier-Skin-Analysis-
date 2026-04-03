@@ -1,4 +1,4 @@
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
   Droplets,
@@ -54,6 +54,7 @@ const recommendations = [
 
 export default function Report() {
   const params = useParams<{ scanId: string }>();
+  const [, setLocation] = useLocation();
   const overallScore = 82;
   const skinAge = 24;
 
@@ -194,11 +195,35 @@ export default function Report() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <button className="w-full py-4 rounded-xl bg-dark-card border border-dark-border font-semibold flex items-center justify-center gap-2">
-        <Heart className="w-5 h-5" />
-        Save Report
-      </button>
+      {/* Actions */}
+      <div className="space-y-3">
+        <button
+          className="w-full py-4 rounded-xl bg-dark-card border border-dark-border font-semibold flex items-center justify-center gap-2"
+          onClick={() => {
+            const existing = window.localStorage.getItem("savedReports");
+            const reports = existing ? JSON.parse(existing) : [];
+            const report = {
+              id: params.scanId,
+              score: overallScore,
+              skinAge,
+              date: new Date().toISOString(),
+            };
+            window.localStorage.setItem(
+              "savedReports",
+              JSON.stringify([report, ...reports].slice(0, 5)),
+            );
+          }}
+        >
+          <Heart className="w-5 h-5" />
+          Save Report
+        </button>
+        <button
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2"
+          onClick={() => setLocation("/products")}
+        >
+          View Recommended Products
+        </button>
+      </div>
     </div>
   );
 }

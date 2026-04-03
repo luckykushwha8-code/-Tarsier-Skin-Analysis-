@@ -1,78 +1,53 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Plus, Clock, ChevronRight } from "lucide-react";
+import { Sun, Moon, Clock, ChevronRight } from "lucide-react";
 
-const routines = [
-  {
-    id: 1,
-    type: "morning",
-    name: "Morning Routine",
-    icon: Sun,
-    steps: [
-      {
-        order: 1,
-        product: "Gentle Cleanser",
-        duration: "60 sec",
-        notes: "Massage gently in circular motions",
-      },
-      {
-        order: 2,
-        product: "Vitamin C Serum",
-        duration: "30 sec",
-        notes: "Apply to damp skin",
-      },
-      {
-        order: 3,
-        product: "Moisturizer",
-        duration: "30 sec",
-        notes: "Lock in hydration",
-      },
-      {
-        order: 4,
-        product: "Sunscreen SPF 50",
-        duration: "30 sec",
-        notes: "Apply generously",
-      },
-    ],
-  },
-  {
-    id: 2,
-    type: "evening",
-    name: "Evening Routine",
-    icon: Moon,
-    steps: [
-      {
-        order: 1,
-        product: "Oil Cleanser",
-        duration: "60 sec",
-        notes: "Remove makeup and sunscreen",
-      },
-      {
-        order: 2,
-        product: "Gentle Cleanser",
-        duration: "60 sec",
-        notes: "Double cleanse",
-      },
-      {
-        order: 3,
-        product: "Retinol Serum",
-        duration: "30 sec",
-        notes: "Wait 20 min before moisturizer",
-      },
-      {
-        order: 4,
-        product: "Night Cream",
-        duration: "30 sec",
-        notes: "Apply in upward motions",
-      },
-    ],
-  },
-];
+const fallbackSteps = {
+  morning: [
+    { product: "Gentle Cleanser", duration: "60 sec", notes: "Massage gently" },
+    { product: "Vitamin C Serum", duration: "30 sec", notes: "Apply to damp skin" },
+    { product: "Moisturizer", duration: "30 sec", notes: "Lock in hydration" },
+    { product: "Sunscreen SPF 50", duration: "30 sec", notes: "Apply generously" },
+  ],
+  evening: [
+    { product: "Oil Cleanser", duration: "60 sec", notes: "Remove makeup" },
+    { product: "Gentle Cleanser", duration: "60 sec", notes: "Double cleanse" },
+    { product: "Retinol Serum", duration: "30 sec", notes: "Wait before moisturizer" },
+    { product: "Night Cream", duration: "30 sec", notes: "Apply in upward motions" },
+  ],
+};
 
 export default function Routine() {
   const [activeTab, setActiveTab] = useState<"morning" | "evening">("morning");
+  const [routineItems, setRoutineItems] = useState<
+    { name: string; time: "morning" | "evening" }[]
+  >([]);
 
-  const activeRoutine = routines.find((r) => r.type === activeTab);
+  useEffect(() => {
+    const raw = window.localStorage.getItem("routineItems");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as { name: string; time: "morning" | "evening" }[];
+      setRoutineItems(parsed);
+    } catch {
+      setRoutineItems([]);
+    }
+  }, []);
+
+  const activeSteps =
+    routineItems.length > 0
+      ? routineItems
+          .filter((item) => item.time === activeTab)
+          .map((item, index) => ({
+            order: index + 1,
+            product: item.name,
+            duration: "30 sec",
+            notes: "Follow your skin analyst guidance",
+          }))
+      : fallbackSteps[activeTab].map((step, index) => ({
+          order: index + 1,
+          ...step,
+        }));
 
   return (
     <div className="space-y-6">
@@ -113,50 +88,47 @@ export default function Routine() {
           exit={{ opacity: 0, x: -20 }}
           className="space-y-4"
         >
-          {activeRoutine && (
-            <>
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">{activeRoutine.name}</h2>
-                <button className="p-2 rounded-lg bg-dark-card border border-dark-border">
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">
+                {activeTab === "morning" ? "Morning Routine" : "Evening Routine"}
+              </h2>
+            </div>
 
-              {/* Steps */}
-              <div className="space-y-3">
-                {activeRoutine.steps.map((step, index) => (
-                  <motion.div
-                    key={step.order}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-4 rounded-2xl bg-dark-card border border-dark-border"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-electric-blue flex items-center justify-center flex-shrink-0 font-semibold">
-                        {step.order}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold">{step.product}</h3>
-                          <span className="text-gray-400 text-sm flex items-center gap-1">
-                            <Clock className="w-4 h-4" /> {step.duration}
-                          </span>
-                        </div>
-                        <p className="text-gray-400 text-sm">{step.notes}</p>
-                      </div>
+            {/* Steps */}
+            <div className="space-y-3">
+              {activeSteps.map((step, index) => (
+                <motion.div
+                  key={step.order}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 rounded-2xl bg-dark-card border border-dark-border"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-electric-blue flex items-center justify-center flex-shrink-0 font-semibold">
+                      {step.order}
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold">{step.product}</h3>
+                        <span className="text-gray-400 text-sm flex items-center gap-1">
+                          <Clock className="w-4 h-4" /> {step.duration}
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-sm">{step.notes}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-              {/* Start Routine Button */}
-              <button className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2">
-                Start Routine
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </>
-          )}
+            {/* Start Routine Button */}
+            <button className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2">
+              Start Routine
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
         </motion.div>
       </AnimatePresence>
 

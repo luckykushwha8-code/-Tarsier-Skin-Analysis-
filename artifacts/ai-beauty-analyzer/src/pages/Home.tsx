@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import {
@@ -10,7 +11,7 @@ import {
   Scale,
 } from "lucide-react";
 
-const recentScans = [
+const fallbackScans = [
   { id: 1, score: 82, date: "Today", skinAge: 24 },
   { id: 2, score: 78, date: "Yesterday", skinAge: 26 },
 ];
@@ -40,6 +41,32 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const currentScore = 82;
   const skinAge = 24;
+  const [recentScans, setRecentScans] = useState(fallbackScans);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("savedReports");
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved) as {
+        id: string;
+        score: number;
+        skinAge: number;
+        date: string;
+      }[];
+      if (parsed.length) {
+        setRecentScans(
+          parsed.map((item) => ({
+            id: item.id,
+            score: item.score,
+            date: new Date(item.date).toLocaleDateString(),
+            skinAge: item.skinAge,
+          })),
+        );
+      }
+    } catch {
+      setRecentScans(fallbackScans);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
