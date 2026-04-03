@@ -1,12 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-async function apiFetch(path: string) {
-  const res = await fetch(`${BASE}/api${path}`);
-  if (!res.ok) throw new Error(`API error ${res.status}`);
-  return res.json();
-}
+import { supabase } from "@/lib/supabase";
 
 // ── Mock fallback data ──────────────────────────────────────────────────────
 const MOCK_REPORT = {
@@ -136,7 +129,11 @@ export function useScanHistory() {
   return useQuery({
     queryKey: ["scans"],
     queryFn: async () => {
-      try { return await apiFetch("/scans"); } catch { return MOCK_SCANS; }
+      try { 
+        const { data, error } = await supabase.from('scans').select('*').order('created_at', { ascending: false });
+        if (error || !data || data.length === 0) throw error;
+        return data.map(s => ({ ...s, createdAt: s.created_at, overallScore: s.overall_score }));
+      } catch { return MOCK_SCANS; }
     },
   });
 }
@@ -145,7 +142,12 @@ export function useReport(scanId: string) {
   return useQuery({
     queryKey: ["report", scanId],
     queryFn: async () => {
-      try { return await apiFetch(`/reports/${scanId}`); } catch { return { ...MOCK_REPORT, id: scanId }; }
+      try { 
+        if (scanId === "latest") throw new Error("Fallback requested");
+        const { data, error } = await supabase.from('scans').select('*').eq('id', scanId).single();
+        if (error || !data) throw error;
+        return { ...data, id: scanId }; 
+      } catch { return { ...MOCK_REPORT, id: scanId }; }
     },
     enabled: !!scanId,
   });
@@ -155,7 +157,7 @@ export function useRoutines() {
   return useQuery({
     queryKey: ["routines"],
     queryFn: async () => {
-      try { return await apiFetch("/routines"); } catch { return MOCK_ROUTINES; }
+      return MOCK_ROUTINES; // Routines are static recommendation logic right now
     },
   });
 }
@@ -173,7 +175,18 @@ export function useProducts(params?: { search?: string; category?: string; limit
     queryKey: ["products", queryStr],
     queryFn: async () => {
       try {
-        return await apiFetch(`/products${queryStr ? `?${queryStr}` : ""}`);
+        let query = supabase.from('products').select('*');
+        if (params?.category && params.category !== "All") {
+          query = query.eq('category', params.category);
+        }
+        if (params?.search && params.search.length > 1) {
+          query = query.ilike('name', `%${params.search}%`);
+        }
+        query = query.limit(params?.limit ?? 30);
+        
+        const { data, error } = await query;
+        if (error || !data || data.length === 0) throw error;
+        return data;
       } catch {
         // Filter mock data locally
         let results = [...MOCK_PRODUCTS];
@@ -201,7 +214,11 @@ export function useProgress() {
   return useQuery({
     queryKey: ["progress"],
     queryFn: async () => {
-      try { return await apiFetch("/progress"); } catch { return MOCK_PROGRESS; }
+      try {
+        const { data, error } = await supabase.from('scans').select('id, overall_score, created_at').order('created_at', { ascending: true });
+        if (error || !data || data.length === 0) throw error;
+        return data.map(s => ({ id: s.id, overallScore: s.overall_score, createdAt: s.created_at }));
+      } catch { return MOCK_PROGRESS; }
     },
   });
 }

@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { CartProvider } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/use-auth";
 
 // Pages
 import { Onboarding } from "@/pages/Onboarding";
@@ -31,30 +32,36 @@ const queryClient = new QueryClient({
 });
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  // Auto-set mock token so pages are always accessible without login
-  if (!localStorage.getItem("auth_token")) {
-    localStorage.setItem("auth_token", "demo-token");
-    localStorage.setItem("auth_user", JSON.stringify({ id: "usr_demo", name: "Luminous User", email: "demo@tarsier.ai", skinType: "Combination" }));
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/login");
+    }
+  }, [isLoading, isAuthenticated, setLocation]);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-primary">Loading...</div>;
   }
-  return <Component />;
+
+  return isAuthenticated ? <Component /> : null;
 }
 
 function Router() {
   const [location, setLocation] = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // Auto-set mock credentials and route root path
-    if (!localStorage.getItem("auth_token")) {
-      localStorage.setItem("auth_token", "demo-token");
-      localStorage.setItem("auth_user", JSON.stringify({ id: "usr_demo", name: "Luminous User", email: "demo@tarsier.ai", skinType: "Combination" }));
-    }
-    if (location === "/") {
-      const hasSeenOnboarding = localStorage.getItem("onboarding_seen");
-      if (hasSeenOnboarding) {
+    if (location === "/" && !isLoading) {
+      if (isAuthenticated) {
         setLocation("/home");
+      } else {
+        const hasSeenOnboarding = localStorage.getItem("onboarding_seen");
+        if (hasSeenOnboarding) setLocation("/login");
       }
     }
-  }, [location, setLocation]);
+  }, [location, setLocation, isAuthenticated, isLoading]);
 
   return (
     <Switch>

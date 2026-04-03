@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { supabase } from "@/lib/supabase";
 
 export interface User {
   id: string;
@@ -9,77 +10,64 @@ export interface User {
   skinType?: string;
 }
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
-    if (token && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUser({ id: session.user.id, name: session.user.user_metadata?.name || "User", email: session.user.email || "" });
+      } else {
+        setUser(null);
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    });
+
+    // Listen for changes on auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setUser({ id: session.user.id, name: session.user.user_metadata?.name || "User", email: session.user.email || "" });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (!res.ok) throw new Error("Invalid credentials");
-      const data = await res.json();
-      localStorage.setItem("auth_token", data.token);
-      localStorage.setItem("auth_user", JSON.stringify(data.user));
-      setUser(data.user);
-      setLocation("/home");
-    } catch {
-      // Fallback: any credentials work (demo mode)
-      const mockUser: User = { id: "usr_123", name: "Olivia Chen", email, skinType: "Combination" };
-      localStorage.setItem("auth_token", "demo_token");
-      localStorage.setItem("auth_user", JSON.stringify(mockUser));
-      setUser(mockUser);
-      setLocation("/home");
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (data.session) setLocation("/home");
+    } catch (err: any) {
+      console.error("Login failed", err.message);
+      throw err;
     }
   };
 
-  const register = async (name: string, email: string, _password: string) => {
+  const register = async (name: string, email: string, password: string) => {
     try {
-      const res = await fetch(`${BASE}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password: _password }),
+      const { data, error } = await supabase.auth.signUp({
+        email, 
+        password,
+        options: {
+          data: { name }
+        }
       });
-      if (!res.ok) throw new Error("Registration failed");
-      const data = await res.json();
-      localStorage.setItem("auth_token", data.token);
-      localStorage.setItem("auth_user", JSON.stringify(data.user));
-      setUser(data.user);
-      setLocation("/home");
-    } catch {
-      const mockUser: User = { id: "usr_" + Math.random().toString(36).substr(2, 9), name, email };
-      localStorage.setItem("auth_token", "demo_token");
-      localStorage.setItem("auth_user", JSON.stringify(mockUser));
-      setUser(mockUser);
-      setLocation("/home");
+      if (error) throw error;
+      if (data.session) setLocation("/home");
+    } catch (err: any) {
+      console.error("Registration failed", err.message);
+      throw err;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
-    localStorage.removeItem("onboarding_seen");
-    setUser(null);
+  const logout = async () => {
+    await supabase.auth.signOut();
     setLocation("/login");
   };
 
