@@ -1,104 +1,174 @@
 import { useState } from "react";
-import { MobileLayout } from "@/components/MobileLayout";
-import { useRoutines } from "@/hooks/use-skincare";
-import { CheckCircle2, Clock, CalendarDays, Sun, Moon } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sun, Moon, Plus, Clock, ChevronRight } from "lucide-react";
 
-export function Routine() {
-  const { data: routines, isLoading } = useRoutines();
+const routines = [
+  {
+    id: 1,
+    type: "morning",
+    name: "Morning Routine",
+    icon: Sun,
+    steps: [
+      {
+        order: 1,
+        product: "Gentle Cleanser",
+        duration: "60 sec",
+        notes: "Massage gently in circular motions",
+      },
+      {
+        order: 2,
+        product: "Vitamin C Serum",
+        duration: "30 sec",
+        notes: "Apply to damp skin",
+      },
+      {
+        order: 3,
+        product: "Moisturizer",
+        duration: "30 sec",
+        notes: "Lock in hydration",
+      },
+      {
+        order: 4,
+        product: "Sunscreen SPF 50",
+        duration: "30 sec",
+        notes: "Apply generously",
+      },
+    ],
+  },
+  {
+    id: 2,
+    type: "evening",
+    name: "Evening Routine",
+    icon: Moon,
+    steps: [
+      {
+        order: 1,
+        product: "Oil Cleanser",
+        duration: "60 sec",
+        notes: "Remove makeup and sunscreen",
+      },
+      {
+        order: 2,
+        product: "Gentle Cleanser",
+        duration: "60 sec",
+        notes: "Double cleanse",
+      },
+      {
+        order: 3,
+        product: "Retinol Serum",
+        duration: "30 sec",
+        notes: "Wait 20 min before moisturizer",
+      },
+      {
+        order: 4,
+        product: "Night Cream",
+        duration: "30 sec",
+        notes: "Apply in upward motions",
+      },
+    ],
+  },
+];
+
+export default function Routine() {
   const [activeTab, setActiveTab] = useState<"morning" | "evening">("morning");
 
-  if (isLoading) return <MobileLayout><div className="p-8">Loading routine...</div></MobileLayout>;
-
-  const routine = routines?.find(r => r.type === activeTab);
-  const completedCount = routine?.steps.filter(s => s.isCompleted).length || 0;
-  const totalSteps = routine?.steps.length || 0;
-  const progress = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
+  const activeRoutine = routines.find((r) => r.type === activeTab);
 
   return (
-    <MobileLayout>
-      <div className="p-6">
-        <header className="mb-6">
-          <h1 className="text-3xl font-serif font-bold text-foreground">Your Routine</h1>
-          <p className="text-muted-foreground mt-1">Curated for your combination skin</p>
-        </header>
-
-        {/* Custom Tabs */}
-        <div className="flex p-1 bg-muted rounded-2xl mb-8">
-          <button
-            onClick={() => setActiveTab("morning")}
-            className={cn(
-              "flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all",
-              activeTab === "morning" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
-            )}
-          >
-            <Sun className="w-4 h-4" /> Morning
-          </button>
-          <button
-            onClick={() => setActiveTab("evening")}
-            className={cn(
-              "flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-all",
-              activeTab === "evening" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"
-            )}
-          >
-            <Moon className="w-4 h-4" /> Evening
-          </button>
-        </div>
-
-        {/* Progress Card */}
-        <div className="bg-primary text-primary-foreground rounded-2xl p-5 mb-8 shadow-lg shadow-primary/20">
-          <div className="flex justify-between items-end mb-4">
-            <div>
-              <h3 className="font-bold text-lg">{routine?.name}</h3>
-              <p className="text-primary-foreground/80 text-sm flex items-center gap-1 mt-1">
-                <Clock className="w-4 h-4" /> {routine?.duration} mins
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="text-2xl font-bold">{completedCount}</span>
-              <span className="text-primary-foreground/70 text-sm">/{totalSteps} steps</span>
-            </div>
-          </div>
-          <div className="w-full h-2 bg-primary-foreground/20 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-accent transition-all duration-500 ease-out rounded-full" 
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Steps List */}
-        <div className="space-y-4">
-          {routine?.steps.map((step, index) => (
-            <div 
-              key={index} 
-              className={cn(
-                "p-4 rounded-2xl border transition-all duration-300 flex items-center gap-4 cursor-pointer",
-                step.isCompleted ? "bg-muted/50 border-transparent opacity-70" : "bg-card border-border shadow-sm hover:border-secondary"
-              )}
-            >
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2",
-                step.isCompleted ? "bg-success border-success text-white" : "border-muted-foreground text-muted-foreground"
-              )}>
-                {step.isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <span className="font-bold text-sm">{step.order}</span>}
-              </div>
-              
-              <div className="flex-1">
-                <h4 className={cn("font-bold", step.isCompleted ? "line-through text-muted-foreground" : "text-foreground")}>
-                  {step.name}
-                </h4>
-                <p className="text-sm text-muted-foreground mt-0.5">{step.product}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <Button className="w-full mt-8" size="lg" variant={progress === 100 ? "outline" : "primary"}>
-          {progress === 100 ? "Reset Routine" : "Mark All Complete"}
-        </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-2xl font-bold">Skincare Routine</h1>
+        <p className="text-gray-400">Your personalized daily routines</p>
       </div>
-    </MobileLayout>
+
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 bg-dark-card rounded-xl">
+        {(["morning", "evening"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors ${
+              activeTab === tab
+                ? "bg-gradient-to-r from-neon-purple to-electric-blue"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            {tab === "morning" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Active Routine */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="space-y-4"
+        >
+          {activeRoutine && (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold text-lg">{activeRoutine.name}</h2>
+                <button className="p-2 rounded-lg bg-dark-card border border-dark-border">
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Steps */}
+              <div className="space-y-3">
+                {activeRoutine.steps.map((step, index) => (
+                  <motion.div
+                    key={step.order}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="p-4 rounded-2xl bg-dark-card border border-dark-border"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-neon-purple to-electric-blue flex items-center justify-center flex-shrink-0 font-semibold">
+                        {step.order}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-semibold">{step.product}</h3>
+                          <span className="text-gray-400 text-sm flex items-center gap-1">
+                            <Clock className="w-4 h-4" /> {step.duration}
+                          </span>
+                        </div>
+                        <p className="text-gray-400 text-sm">{step.notes}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Start Routine Button */}
+              <button className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2">
+                Start Routine
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Tips */}
+      <div className="p-4 rounded-xl bg-dark-card border border-dark-border">
+        <h3 className="font-semibold mb-2">💡 Pro Tips</h3>
+        <ul className="text-gray-400 text-sm space-y-2">
+          <li>• Wait 2-3 minutes between steps for better absorption</li>
+          <li>• Apply products thinnest to thickest consistency</li>
+          <li>• Always end with sunscreen in the morning</li>
+        </ul>
+      </div>
+    </div>
   );
 }

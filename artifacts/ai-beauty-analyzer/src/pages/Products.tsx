@@ -1,179 +1,171 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
-import { Search, Heart, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
-import { MobileLayout } from "@/components/MobileLayout";
-import { useProducts } from "@/hooks/use-skincare";
-import { useCart } from "@/hooks/use-cart";
-import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
+import { Search, Filter, Heart, Star, ShoppingBag } from "lucide-react";
 
-const CATEGORIES = [
-  { label: "All", value: "All" },
-  { label: "Cleanser", value: "Facial Cleansers" },
-  { label: "Moisturiser", value: "Facial Moisturisers" },
-  { label: "Serum", value: "Facial Serums" },
-  { label: "Face", value: "Face" },
-  { label: "Sun Care", value: "Sun Protection" },
-  { label: "Eye Care", value: "Eye Skincare" },
-  { label: "Toner", value: "Facial Toners" },
-  { label: "Masks", value: "Facial Masks" },
+const products = [
+  {
+    id: 1,
+    name: "Gentle Cleanser",
+    brand: "CeraVe",
+    category: "cleanser",
+    price: 1500,
+    rating: 4.5,
+    image: "🧴",
+    isFavorite: true,
+  },
+  {
+    id: 2,
+    name: "Hydrating Serum",
+    brand: "The Ordinary",
+    category: "serum",
+    price: 1200,
+    rating: 4.8,
+    image: "💧",
+    isFavorite: false,
+  },
+  {
+    id: 3,
+    name: "Daily Moisturizer",
+    brand: "Neutrogena",
+    category: "moisturizer",
+    price: 1800,
+    rating: 4.2,
+    image: "🧴",
+    isFavorite: true,
+  },
+  {
+    id: 4,
+    name: "Sunscreen SPF 50",
+    brand: "La Roche-Posay",
+    category: "sunscreen",
+    price: 2500,
+    rating: 4.9,
+    image: "☀️",
+    isFavorite: false,
+  },
+  {
+    id: 5,
+    name: "Vitamin C Serum",
+    brand: "Skinceuticals",
+    category: "serum",
+    price: 4500,
+    rating: 4.7,
+    image: "✨",
+    isFavorite: true,
+  },
+  {
+    id: 6,
+    name: "Night Cream",
+    brand: "CeraVe",
+    category: "moisturizer",
+    price: 2200,
+    rating: 4.3,
+    image: "🌙",
+    isFavorite: false,
+  },
 ];
 
-export function Products() {
-  const [, setLocation] = useLocation();
-  const [activeCat, setActiveCat] = useState("All");
-  const [search, setSearch] = useState("");
-  const [favorites, setFavorites] = useState<Set<number>>(new Set());
-  const { toast } = useToast();
-  const { addItem, totalItems } = useCart();
+const categories = ["All", "Cleanser", "Serum", "Moisturizer", "Sunscreen"];
 
-  const { data: products, isLoading } = useProducts({
-    category: activeCat === "All" ? undefined : activeCat,
-    search: search.length > 1 ? search : undefined,
-    limit: 40,
+export default function Products() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" ||
+      product.category.toLowerCase() === selectedCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
   });
 
-  const toggleFavorite = (id: number) => {
-    setFavorites(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleAdd = (product: any) => {
-    const price = parseFloat(product.price) || (Math.floor(Math.random() * 50) + 15);
-    addItem({ ...product, price });
-    toast({ title: "Added to Cart", description: `${product.name} has been added.` });
-  };
-
   return (
-    <MobileLayout>
-      <div className="p-5 pb-24">
-        <header className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-serif font-bold text-foreground">Products</h1>
-              <p className="text-muted-foreground text-xs">
-                {products ? `${products.length} products found` : "Loading..."}
-              </p>
-            </div>
-          </div>
-          
-          {/* Cart Icon */}
-          <button 
-            onClick={() => setLocation("/cart")}
-            className="w-10 h-10 rounded-full border border-border bg-card flex items-center justify-center hover:bg-secondary/50 relative"
-          >
-            <ShoppingCart className="w-5 h-5 text-foreground" />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {totalItems}
-              </span>
-            )}
-          </button>
-        </header>
-
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Search by name or brand..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-2xl bg-muted/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
-
-        {/* Category chips */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-5 -mx-5 px-5">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.value}
-              onClick={() => setActiveCat(cat.value)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-semibold transition-all ${
-                activeCat === cat.value
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-card border border-border text-foreground hover:bg-muted"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Products grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-muted/50 rounded-2xl aspect-[3/4] animate-pulse" />
-            ))}
-          </div>
-        ) : products?.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p>No products found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {products?.map((product: any) => (
-              <div key={product.id} className="bg-card rounded-2xl p-3 border border-border shadow-sm flex flex-col relative group">
-                <button
-                  onClick={() => toggleFavorite(product.id)}
-                  className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/80 backdrop-blur flex items-center justify-center shadow-sm"
-                >
-                  <Heart className={`w-4 h-4 transition-colors ${
-                    favorites.has(product.id) ? "fill-red-400 text-red-400" : "text-muted-foreground"
-                  }`} />
-                </button>
-
-                {/* Product image */}
-                <div className="w-full aspect-square rounded-xl bg-muted/30 mb-3 overflow-hidden">
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ShoppingBag className="w-8 h-8 text-muted-foreground/30" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 flex flex-col">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider mb-0.5 truncate">{product.brand}</span>
-                  <h4 className="font-semibold text-foreground text-xs leading-tight mb-1 line-clamp-2">{product.name}</h4>
-                  {product.size && (
-                    <span className="text-[10px] text-muted-foreground mb-1">{product.size}</span>
-                  )}
-
-                  <div className="mt-auto flex items-center justify-between pt-2">
-                    <span className="font-bold text-foreground text-sm">
-                      {product.price ? `$${parseFloat(product.price).toFixed(2)}` : "—"}
-                    </span>
-                    <button
-                      onClick={() => handleAdd(product)}
-                      className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="h-6" />
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="font-display text-2xl font-bold">Products</h1>
+        <p className="text-gray-400">Recommended for your skin type</p>
       </div>
-    </MobileLayout>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 rounded-xl bg-dark-card border border-dark-border focus:border-neon-purple focus:outline-none"
+        />
+      </div>
+
+      {/* Categories */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+              selectedCategory === category
+                ? "bg-neon-purple text-white"
+                : "bg-dark-card border border-dark-border text-gray-400 hover:text-white"
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {filteredProducts.map((product, index) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="p-4 rounded-2xl bg-dark-card border border-dark-border"
+          >
+            {/* Image placeholder */}
+            <div className="w-full h-32 rounded-xl bg-dark-surface flex items-center justify-center text-5xl mb-3">
+              {product.image}
+            </div>
+
+            {/* Favorite button */}
+            <button className="absolute top-2 right-2 p-2 rounded-full bg-dark-bg/50">
+              <Heart
+                className={`w-4 h-4 ${product.isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"}`}
+              />
+            </button>
+
+            <h3 className="font-semibold mb-1">{product.name}</h3>
+            <p className="text-gray-400 text-sm mb-2">{product.brand}</p>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm">{product.rating}</span>
+              </div>
+              <span className="font-semibold">
+                ${(product.price / 100).toFixed(2)}
+              </span>
+            </div>
+
+            <button className="w-full mt-3 py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-neon-purple/20 transition-colors">
+              <ShoppingBag className="w-4 h-4" />
+              Add to Routine
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">No products found</p>
+        </div>
+      )}
+    </div>
   );
 }

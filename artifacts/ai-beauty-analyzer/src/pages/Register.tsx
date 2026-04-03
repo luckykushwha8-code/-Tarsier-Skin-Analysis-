@@ -1,117 +1,145 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { Mail, Lock, User, ChevronLeft } from "lucide-react";
-import { Input } from "@/components/ui/Input";
-import { MobileLayout } from "@/components/MobileLayout";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { RegisterSchema } from "@workspace/api-zod";
+import { cn } from "@/lib/utils";
 
-export function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const registerSchema = RegisterSchema;
+
+type RegisterForm = z.infer<typeof registerSchema>;
+
+export default function Register() {
+  const [, setLocation] = useLocation();
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
-  const { toast } = useToast();
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !password) {
-      toast({ title: "Please fill in all fields", variant: "destructive" });
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
-    try {
-      await register(name, email, password);
-    } catch {
-      toast({ title: "Registration failed", description: "Please try again.", variant: "destructive" });
-    } finally {
+    // Simulate registration - in real app would call API
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      setLocation("/home");
+    }, 1000);
   };
 
   return (
-    <MobileLayout showBottomNav={false}>
-      <div className="relative flex flex-col min-h-screen overflow-hidden">
-        {/* Background girl image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1619451334792-150fd785ee74?w=800&q=90"
-            alt=""
-            className="w-full h-full object-cover object-top"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/55 to-black/95" />
-          <div className="absolute inset-0 bg-blue-950/40 mix-blend-multiply" />
+    <div className="min-h-screen bg-dark-bg px-6 py-8">
+      <div className="max-w-md mx-auto">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-12">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-purple to-electric-blue flex items-center justify-center glow-eyes">
+            <span className="text-2xl">👁</span>
+          </div>
+          <span className="font-display text-2xl font-bold text-gradient">
+            Tarsier
+          </span>
         </div>
 
-        {/* Neon glows */}
-        <div className="absolute top-0 left-0 w-40 h-40 rounded-full bg-violet-600/25 blur-[70px] z-0 pointer-events-none" />
-        <div className="absolute bottom-10 right-0 w-36 h-36 rounded-full bg-blue-600/20 blur-[70px] z-0 pointer-events-none" />
+        <h1 className="font-display text-3xl font-bold mb-2">Create account</h1>
+        <p className="text-gray-400 mb-8">
+          Start your personalized skin analysis journey
+        </p>
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col min-h-screen px-7 py-8">
-          <Link href="/login" className="w-10 h-10 flex items-center justify-center bg-white/10 backdrop-blur-md rounded-full border border-white/10 mb-6">
-            <ChevronLeft className="w-5 h-5 text-white" />
-          </Link>
-
-          {/* Headline at top */}
-          <div className="mb-4">
-            <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">GlowUp</p>
-            <h1 className="text-3xl font-serif font-bold text-white">Glow up starts here ✨</h1>
-            <p className="text-white/50 text-sm mt-1.5">Create your account & let AI do the work</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Name</label>
+            <input
+              {...register("name")}
+              type="text"
+              placeholder="Your name"
+              className={cn(
+                "w-full px-4 py-3 rounded-xl bg-dark-card border border-dark-border focus:border-neon-purple focus:outline-none transition-colors",
+                errors.name && "border-red-500",
+              )}
+            />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            )}
           </div>
 
-          {/* Spacer to push form toward bottom */}
-          <div className="flex-1" />
-
-          {/* Form card */}
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
-            <form onSubmit={handleRegister} className="flex flex-col gap-4">
-              <Input
-                type="text"
-                placeholder="Full Name"
-                icon={<User className="w-5 h-5" />}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <Input
-                type="email"
-                placeholder="Email Address"
-                icon={<Mail className="w-5 h-5" />}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                icon={<Lock className="w-5 h-5" />}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Input
-                type="password"
-                placeholder="Confirm Password"
-                icon={<Lock className="w-5 h-5" />}
-              />
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-neon w-full py-4 rounded-2xl text-white font-semibold text-base mt-2 disabled:opacity-50"
-              >
-                {isLoading ? "Creating account..." : "Create Account"}
-              </button>
-
-              <p className="text-center text-white/50 text-sm">
-                Already have an account?{" "}
-                <Link href="/login" className="text-violet-300 font-semibold hover:text-violet-200">
-                  Sign In
-                </Link>
+          <div>
+            <label className="block text-sm font-medium mb-2">Email</label>
+            <input
+              {...register("email")}
+              type="email"
+              placeholder="you@example.com"
+              className={cn(
+                "w-full px-4 py-3 rounded-xl bg-dark-card border border-dark-border focus:border-neon-purple focus:outline-none transition-colors",
+                errors.email && "border-red-500",
+              )}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
               </p>
-            </form>
+            )}
           </div>
-        </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Password</label>
+            <div className="relative">
+              <input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className={cn(
+                  "w-full px-4 py-3 rounded-xl bg-dark-card border border-dark-border focus:border-neon-purple focus:outline-none transition-colors pr-12",
+                  errors.password && "border-red-500",
+                )}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              "Create Account"
+            )}
+          </button>
+        </form>
+
+        <p className="text-center text-gray-400 mt-6">
+          Already have an account?{" "}
+          <button
+            onClick={() => setLocation("/login")}
+            className="text-neon-purple hover:underline"
+          >
+            Sign in
+          </button>
+        </p>
       </div>
-    </MobileLayout>
+    </div>
   );
 }

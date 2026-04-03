@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter ai-beauty-analyzer run build",
+  "outputDirectory": "artifacts/ai-beauty-analyzer/dist",
+  "framework": null,
+  "installCommand": "pnpm install --ignore-scripts"
+}

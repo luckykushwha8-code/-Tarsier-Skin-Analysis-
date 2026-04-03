@@ -1,258 +1,163 @@
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Zap, Image as ImageIcon, Eye, Loader2 } from "lucide-react";
-import { MobileLayout } from "@/components/MobileLayout";
+import { Camera, Loader2, CheckCircle } from "lucide-react";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-const SKIN_TYPES = ["Normal", "Oily", "Dry", "Combination", "Sensitive"];
-const CONCERNS = ["Acne", "Dark Circles", "Pigmentation", "Dryness", "Oiliness", "Wrinkles", "Sensitivity", "Dark Spots"];
-
-const SCAN_STEPS = [
-  "Uploading image securely...",
-  "Running facial geometry mapping...",
-  "Analyzing pigmentation & dark spots...",
-  "Measuring hydration levels...",
-  "Calculating final GlowUp score..."
-];
-
-export function Scan() {
+export default function Scan() {
   const [, setLocation] = useLocation();
-  const [step, setStep] = useState<"profile" | "camera">("profile");
-  const [skinType, setSkinType] = useState("Combination");
-  const [age, setAge] = useState("25");
-  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgressIndex, setScanProgressIndex] = useState(0);
-  const [flash, setFlash] = useState(false);
+  const [step, setStep] = useState<
+    "position" | "capturing" | "analyzing" | "done"
+  >("position");
+  const [countdown, setCountdown] = useState(3);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const toggleConcern = (c: string) => {
-    setSelectedConcerns((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+  const startCapture = () => {
+    setStep("capturing");
+
+    // Countdown
+    let count = 3;
+    const interval = setInterval(() => {
+      count--;
+      setCountdown(count);
+      if (count === 0) {
+        clearInterval(interval);
+        analyze();
+      }
+    }, 1000);
   };
 
-  const handleCapture = async () => {
-    setIsScanning(true);
-    setScanProgressIndex(0);
-
-    // Simulate multi-step AI analysis
-    for (let i = 0; i < SCAN_STEPS.length; i++) {
-        setScanProgressIndex(i);
-        // Wait 1.2s per step to build suspense
-        await new Promise(r => setTimeout(r, 1200));
-    }
-
-    try {
-      const res = await fetch(`${BASE}/api/scans`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          skinType: skinType.toLowerCase(),
-          age: parseInt(age) || 25,
-          concerns: selectedConcerns.map((c) => c.toLowerCase()),
-        }),
-      });
-      const scan = await res.json();
-      setLocation(`/report/${scan.id}`);
-    } catch {
-      // Mock fallback
-      setLocation("/report/latest");
-    }
+  const analyze = () => {
+    setStep("analyzing");
+    setTimeout(() => {
+      setStep("done");
+    }, 3000);
   };
 
-  if (step === "profile") {
-    return (
-      <MobileLayout showBottomNav={false}>
-        <div className="min-h-screen bg-background px-6 py-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-violet-600/15 blur-[80px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-blue-600/15 blur-[80px] pointer-events-none" />
-
-          <button onClick={() => setLocation("/home")} className="w-10 h-10 bg-card rounded-full flex items-center justify-center border border-border mb-8">
-            <ChevronLeft className="w-5 h-5 text-foreground" />
-          </button>
-
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <Eye className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">GlowUp</span>
-            </div>
-            <h1 className="text-3xl font-serif font-bold gradient-text mb-2">Skin Profile</h1>
-            <p className="text-muted-foreground text-sm">Tell us about your skin so the AI can tailor your analysis.</p>
-          </div>
-
-          {/* Skin Type */}
-          <div className="mb-7">
-            <p className="text-sm font-semibold text-foreground mb-3">Skin Type</p>
-            <div className="flex flex-wrap gap-2">
-              {SKIN_TYPES.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setSkinType(t)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                    skinType === t
-                      ? "bg-primary/20 border-primary text-primary shadow-[0_0_12px_rgba(139,92,246,0.3)]"
-                      : "bg-card border-border text-muted-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Age */}
-          <div className="mb-7">
-            <p className="text-sm font-semibold text-foreground mb-3">Age</p>
-            <input
-              type="number"
-              min="12"
-              max="90"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="w-full bg-card border border-border rounded-xl px-4 py-3 text-foreground text-sm focus:outline-none focus:border-primary focus:shadow-[0_0_0_2px_rgba(139,92,246,0.2)]"
-              placeholder="e.g. 25"
-            />
-          </div>
-
-          {/* Concerns */}
-          <div className="mb-10">
-            <p className="text-sm font-semibold text-foreground mb-3">Main Concerns <span className="text-muted-foreground font-normal">(select all that apply)</span></p>
-            <div className="flex flex-wrap gap-2">
-              {CONCERNS.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => toggleConcern(c)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                    selectedConcerns.includes(c)
-                      ? "bg-accent/20 border-accent text-accent shadow-[0_0_12px_rgba(96,165,250,0.3)]"
-                      : "bg-card border-border text-muted-foreground hover:border-accent/40"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => setStep("camera")}
-            className="btn-neon w-full py-4 rounded-2xl text-white font-semibold text-base"
-          >
-            Continue to Scan
-          </button>
-        </div>
-      </MobileLayout>
-    );
-  }
+  const viewResults = () => {
+    // Navigate to a mock report
+    setLocation("/report/1");
+  };
 
   return (
-    <MobileLayout showBottomNav={false}>
-      <div className="h-[100dvh] w-full bg-black relative overflow-hidden flex flex-col">
-        {/* Top Bar */}
-        <div className="absolute top-0 w-full z-20 p-6 flex justify-between items-center pb-safe">
-          <button onClick={() => setStep("profile")} className="p-2 bg-white/10 backdrop-blur-md rounded-full text-white">
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
-            <Eye className="w-4 h-4 text-violet-400" />
-            <span className="text-white text-sm font-semibold">GlowUp AI</span>
-          </div>
-          <button
-            onClick={() => setFlash(!flash)}
-            className={`p-2 backdrop-blur-md rounded-full transition-colors ${flash ? "bg-yellow-400 text-black" : "bg-white/10 text-white"}`}
-          >
-            <Zap className="w-6 h-6" />
-          </button>
-        </div>
+    <div className="min-h-[calc(100vh-6rem)] flex flex-col">
+      <h1 className="font-display text-2xl font-bold mb-4">Skin Analysis</h1>
 
-        {/* Camera Feed */}
-        <div className="absolute inset-0 z-0 transition-opacity duration-1000">
-          <img
-            src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=800&q=80"
-            alt="Camera Feed"
-            className={`w-full h-full object-cover transition-all duration-1000 ${isScanning ? "opacity-30 blur-sm scale-105" : "opacity-80"}`}
-          />
-          <div className={`absolute inset-0 transition-colors duration-1000 ${isScanning ? "bg-black/80" : "bg-black/30"}`} />
-        </div>
+      {/* Camera View */}
+      <div className="flex-1 relative rounded-3xl overflow-hidden bg-dark-card border border-dark-border">
+        {/* Face Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative w-64 h-80">
+            {/* Face outline */}
+            <div className="absolute inset-0 border-2 border-dashed border-neon-purple/50 rounded-[120px] animate-pulse" />
 
-        {/* Face oval */}
-        <div className="absolute inset-0 z-5 flex items-center justify-center pointer-events-none" style={{ paddingBottom: "10%" }}>
-          <div
-            className={`border-2 rounded-[50%] transition-all duration-1000 ${
-              isScanning 
-              ? "border-primary shadow-[0_0_40px_rgba(139,92,246,0.6),inset_0_0_40px_rgba(139,92,246,0.2)] scale-110" 
-              : "border-white/40 shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]"
-            }`}
-            style={{ width: "65%", height: "55%" }}
-          />
-        </div>
-
-        {/* Scan animation */}
-        {isScanning && (
-          <div
-            className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-black/50 backdrop-blur-md rounded-2xl p-6 flex flex-col items-center border border-white/10"
-            >
-              <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-              <div className="text-white text-base font-semibold mb-1">AI Processing</div>
-              
-              {/* Dynamic Text */}
-              <div className="h-5 relative w-64 overflow-hidden mb-3">
-                <AnimatePresence mode="popLayout">
-                  <motion.p
-                    key={scanProgressIndex}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-primary text-sm font-medium text-center absolute w-full"
-                  >
-                    {SCAN_STEPS[scanProgressIndex]}
-                  </motion.p>
-                </AnimatePresence>
+            {/* Guide text */}
+            {step === "position" && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-gray-400 text-center px-8">
+                  Position your face within the frame
+                </p>
               </div>
+            )}
 
-              {/* Progress Bar Line */}
-              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
-                <motion.div 
-                  className="h-full bg-primary"
-                  initial={{ width: "0%" }}
-                  animate={{ width: `${((scanProgressIndex + 1) / SCAN_STEPS.length) * 100}%` }}
-                  transition={{ duration: 0.5 }}
-                />
+            {/* Countdown */}
+            {step === "capturing" && countdown > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-display text-8xl font-bold text-white">
+                  {countdown}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Face icon in center for demo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <Camera className="w-16 h-16 text-gray-600" />
+        </div>
+
+        {/* Top overlay gradient */}
+        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-dark-bg/80 to-transparent" />
+
+        {/* Bottom overlay gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-dark-bg/80 to-transparent" />
+
+        {/* Instructions */}
+        <div className="absolute bottom-8 left-0 right-0 text-center">
+          <p className="text-gray-400 text-sm">
+            {step === "position" && "Make sure your face is well-lit"}
+            {step === "capturing" && "Hold still..."}
+            {step === "analyzing" && "Analyzing your skin..."}
+            {step === "done" && "Analysis complete!"}
+          </p>
+        </div>
+
+        {/* Processing overlay */}
+        <AnimatePresence>
+          {step === "analyzing" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-dark-bg/80 flex items-center justify-center"
+            >
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 text-neon-purple animate-spin mx-auto mb-4" />
+                <p className="text-gray-400">Analyzing your skin...</p>
               </div>
             </motion.div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
 
-        {/* Bottom */}
-        <div className={`absolute bottom-0 w-full z-20 pb-safe pt-10 pb-12 bg-gradient-to-t from-black via-black/90 to-transparent flex flex-col items-center transition-all duration-700 ${isScanning ? "translate-y-full opacity-0" : ""}`}>
-          <p className="text-white mb-8 text-sm font-medium bg-white/10 backdrop-blur-sm px-6 py-2.5 rounded-full border border-white/10 shadow-lg">
-            Align your face inside the oval
-          </p>
-
-          <div className="flex items-center justify-center gap-12">
-            <button className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md border border-white/10 hover:bg-white/20 transition-colors">
-              <ImageIcon className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={handleCapture}
-              className="relative w-20 h-20 rounded-full flex items-center justify-center"
+        {/* Success overlay */}
+        <AnimatePresence>
+          {step === "done" && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="absolute inset-0 bg-dark-bg/80 flex items-center justify-center"
             >
-              <div className="absolute inset-0 rounded-full border-[3px] border-white/60" />
-              <div className="w-16 h-16 rounded-full bg-white hover:bg-gray-200 transition-colors active:scale-95" />
-            </button>
-
-            <div className="w-12 h-12" />
-          </div>
-        </div>
+              <div className="text-center">
+                <CheckCircle className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                <p className="text-white text-xl font-semibold mb-2">
+                  Analysis Complete!
+                </p>
+                <p className="text-gray-400 mb-6">Your skin score: 82</p>
+                <button
+                  onClick={viewResults}
+                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold"
+                >
+                  View Results
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </MobileLayout>
+
+      {/* Capture Button */}
+      {step === "position" && (
+        <div className="mt-6">
+          <button
+            onClick={startCapture}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-neon-purple to-electric-blue font-semibold flex items-center justify-center gap-2"
+          >
+            <Camera className="w-5 h-5" />
+            Start Scan
+          </button>
+        </div>
+      )}
+
+      {/* Tips */}
+      {step === "position" && (
+        <div className="mt-4 p-4 rounded-xl bg-dark-card border border-dark-border">
+          <p className="text-gray-400 text-sm">
+            <span className="text-neon-purple font-medium">
+              Tips for best results:
+            </span>{" "}
+            Remove makeup, ensure good lighting, and keep your face straight.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
-
