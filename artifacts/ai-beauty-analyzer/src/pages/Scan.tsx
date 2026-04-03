@@ -34,6 +34,11 @@ export default function Scan() {
   };
 
   const viewResults = () => {
+    const skinProfile = {
+      skin_type: "oily",
+      concerns: ["acne", "oiliness"],
+    };
+    window.localStorage.setItem("skinProfile", JSON.stringify(skinProfile));
     // Navigate to a mock report
     setLocation("/report/1");
   };

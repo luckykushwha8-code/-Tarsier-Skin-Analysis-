@@ -1,84 +1,140 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, Heart, Star, ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag, Star } from "lucide-react";
+import { isSupabaseReady, supabase } from "../lib/supabase";
 
-const products = [
-  {
-    id: 1,
-    name: "Gentle Cleanser",
-    brand: "CeraVe",
-    category: "cleanser",
-    price: 1500,
-    rating: 4.5,
-    image: "🧴",
-    isFavorite: true,
-  },
-  {
-    id: 2,
-    name: "Hydrating Serum",
-    brand: "The Ordinary",
-    category: "serum",
-    price: 1200,
-    rating: 4.8,
-    image: "💧",
-    isFavorite: false,
-  },
-  {
-    id: 3,
-    name: "Daily Moisturizer",
-    brand: "Neutrogena",
-    category: "moisturizer",
-    price: 1800,
-    rating: 4.2,
-    image: "🧴",
-    isFavorite: true,
-  },
-  {
-    id: 4,
-    name: "Sunscreen SPF 50",
-    brand: "La Roche-Posay",
-    category: "sunscreen",
-    price: 2500,
-    rating: 4.9,
-    image: "☀️",
-    isFavorite: false,
-  },
-  {
-    id: 5,
-    name: "Vitamin C Serum",
-    brand: "Skinceuticals",
-    category: "serum",
-    price: 4500,
-    rating: 4.7,
-    image: "✨",
-    isFavorite: true,
-  },
-  {
-    id: 6,
-    name: "Night Cream",
-    brand: "CeraVe",
-    category: "moisturizer",
-    price: 2200,
-    rating: 4.3,
-    image: "🌙",
-    isFavorite: false,
-  },
-];
+type ProductRow = {
+  id: string;
+  name: string;
+  price: string | null;
+  image_url: string | null;
+  affiliate_link: string | null;
+  product_url: string | null;
+  category: string | null;
+  skin_types: string[] | string | null;
+  concerns: string[] | string | null;
+};
 
-const categories = ["All", "Cleanser", "Serum", "Moisturizer", "Sunscreen"];
+type SkinProfile = {
+  skin_type: string;
+  concerns: string[];
+};
+
+const normalizeList = (value: string[] | string | null) => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map((item) => item.trim().toLowerCase()).filter(Boolean);
+  }
+  const raw = value.trim();
+  const cleaned = raw.startsWith("{") && raw.endsWith("}")
+    ? raw.slice(1, -1)
+    : raw;
+  return cleaned
+    .split(",")
+    .map((item) => item.replace(/\"/g, "").trim().toLowerCase())
+    .filter(Boolean);
+};
 
 export default function Products() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedSkinType, setSelectedSkinType] = useState("all");
+  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
+  const [hasScanProfile, setHasScanProfile] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+    const loadProducts = async () => {
+      if (!isSupabaseReady || !supabase) {
+        setError("Supabase is not configured yet.");
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      setError(null);
+      const { data, error: queryError } = await supabase
+        .from("products")
+        .select(
+          "id,name,price,image_url,affiliate_link,product_url,category,skin_types,concerns",
+        )
+        .order("name", { ascending: true });
+
+      if (!isActive) return;
+      if (queryError) {
+        setError("Could not load products. Please try again.");
+        setProducts([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setProducts(data ?? []);
+      setIsLoading(false);
+    };
+
+    loadProducts();
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem("skinProfile");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as SkinProfile;
+      if (parsed?.skin_type) {
+        setSelectedSkinType(parsed.skin_type.toLowerCase());
+        setSelectedConcerns(
+          (parsed.concerns ?? []).map((item) => item.toLowerCase()),
+        );
+        setHasScanProfile(true);
+      }
+    } catch {
+      setHasScanProfile(false);
+    }
+  }, []);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((product) => {
+      if (product.category) {
+        set.add(product.category);
+      }
+    });
+    return ["All", ...Array.from(set).sort()];
+  }, [products]);
+
+  const concernOptions = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((product) => {
+      normalizeList(product.concerns).forEach((concern) => set.add(concern));
+    });
+    return Array.from(set).sort();
+  }, [products]);
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchQuery.toLowerCase());
+      (product.category ?? "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const matchesCategory =
       selectedCategory === "All" ||
-      product.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
+      (product.category ?? "").toLowerCase() ===
+        selectedCategory.toLowerCase();
+    const productSkinTypes = normalizeList(product.skin_types);
+    const productConcerns = normalizeList(product.concerns);
+    const matchesSkinType =
+      selectedSkinType === "all" ||
+      productSkinTypes.includes("all") ||
+      productSkinTypes.includes(selectedSkinType);
+    const matchesConcerns =
+      selectedConcerns.length === 0 ||
+      productConcerns.some((concern) => selectedConcerns.includes(concern));
+    return matchesSearch && matchesCategory && matchesSkinType && matchesConcerns;
   });
 
   return (
@@ -118,50 +174,169 @@ export default function Products() {
         ))}
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {filteredProducts.map((product, index) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="p-4 rounded-2xl bg-dark-card border border-dark-border"
+      {/* Scan Filters */}
+      <div className="rounded-2xl bg-dark-card border border-dark-border p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">Match Your Scan</p>
+            <p className="text-gray-400 text-sm">
+              Filter products by your skin type and concerns
+            </p>
+          </div>
+          {hasScanProfile && (
+            <button
+              className="text-sm text-neon-purple"
+              onClick={() => {
+                const raw = window.localStorage.getItem("skinProfile");
+                if (!raw) return;
+                try {
+                  const parsed = JSON.parse(raw) as SkinProfile;
+                  setSelectedSkinType(parsed.skin_type.toLowerCase());
+                  setSelectedConcerns(
+                    (parsed.concerns ?? []).map((item) => item.toLowerCase()),
+                  );
+                } catch {
+                  setSelectedSkinType("all");
+                  setSelectedConcerns([]);
+                }
+              }}
+            >
+              Apply Scan
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {["all", "oily", "dry", "combination", "sensitive"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setSelectedSkinType(type)}
+              className={`px-3 py-1.5 rounded-full text-xs uppercase tracking-wide ${
+                selectedSkinType === type
+                  ? "bg-neon-purple text-white"
+                  : "bg-dark-surface text-gray-400"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2 flex-wrap">
+          {concernOptions.map((concern) => {
+            const isSelected = selectedConcerns.includes(concern);
+            return (
+              <button
+                key={concern}
+                onClick={() => {
+                  setSelectedConcerns((prev) =>
+                    isSelected
+                      ? prev.filter((item) => item !== concern)
+                      : [...prev, concern],
+                  );
+                }}
+                className={`px-3 py-1.5 rounded-full text-xs ${
+                  isSelected
+                    ? "bg-electric-blue text-white"
+                    : "bg-dark-surface text-gray-400"
+                }`}
+              >
+                {concern.replace(/_/g, " ")}
+              </button>
+            );
+          })}
+        </div>
+
+        {(selectedSkinType !== "all" || selectedConcerns.length > 0) && (
+          <button
+            className="text-sm text-gray-400"
+            onClick={() => {
+              setSelectedSkinType("all");
+              setSelectedConcerns([]);
+            }}
           >
-            {/* Image placeholder */}
-            <div className="w-full h-32 rounded-xl bg-dark-surface flex items-center justify-center text-5xl mb-3">
-              {product.image}
-            </div>
-
-            {/* Favorite button */}
-            <button className="absolute top-2 right-2 p-2 rounded-full bg-dark-bg/50">
-              <Heart
-                className={`w-4 h-4 ${product.isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"}`}
-              />
-            </button>
-
-            <h3 className="font-semibold mb-1">{product.name}</h3>
-            <p className="text-gray-400 text-sm mb-2">{product.brand}</p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm">{product.rating}</span>
-              </div>
-              <span className="font-semibold">
-                ${(product.price / 100).toFixed(2)}
-              </span>
-            </div>
-
-            <button className="w-full mt-3 py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-neon-purple/20 transition-colors">
-              <ShoppingBag className="w-4 h-4" />
-              Add to Routine
-            </button>
-          </motion.div>
-        ))}
+            Clear filters
+          </button>
+        )}
       </div>
 
-      {filteredProducts.length === 0 && (
+      {/* Products Grid */}
+      {isLoading && (
+        <div className="grid grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="p-4 rounded-2xl bg-dark-card border border-dark-border animate-pulse"
+            >
+              <div className="w-full h-32 rounded-xl bg-dark-surface mb-3" />
+              <div className="h-4 bg-dark-surface rounded w-2/3 mb-2" />
+              <div className="h-3 bg-dark-surface rounded w-1/2 mb-4" />
+              <div className="h-8 bg-dark-surface rounded w-full" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && (
+        <div className="grid grid-cols-2 gap-4">
+          {filteredProducts.map((product, index) => (
+            <motion.div
+              key={product.id ?? `${product.name}-${index}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="p-4 rounded-2xl bg-dark-card border border-dark-border"
+            >
+              {/* Image */}
+              <div className="w-full h-32 rounded-xl bg-dark-surface flex items-center justify-center text-5xl mb-3 overflow-hidden">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-3xl text-gray-500">No Image</span>
+                )}
+              </div>
+
+              <h3 className="font-semibold mb-1">{product.name}</h3>
+              <p className="text-gray-400 text-sm mb-2">
+                {product.category ?? "Skincare"}
+              </p>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm">4.6</span>
+                </div>
+                <span className="font-semibold">{product.price ?? "-"}</span>
+              </div>
+
+              <button
+                className="w-full mt-3 py-2 rounded-lg bg-dark-surface border border-dark-border flex items-center justify-center gap-2 text-sm hover:bg-neon-purple/20 transition-colors"
+                onClick={() => {
+                  if (product.affiliate_link) {
+                    window.open(product.affiliate_link, "_blank", "noopener");
+                  }
+                }}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Buy Now
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && error && (
+        <div className="text-center py-12">
+          <p className="text-gray-400">{error}</p>
+        </div>
+      )}
+
+      {!isLoading && !error && filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-400">No products found</p>
         </div>
