@@ -55,6 +55,27 @@ export default function Scan() {
             {/* Face outline */}
             <div className="absolute inset-0 border-2 border-dashed border-neon-purple/50 rounded-[120px] animate-pulse" />
 
+            {/* Tracking ring */}
+            <motion.div
+              className="absolute inset-0 rounded-[120px] border border-neon-purple/30"
+              animate={{ scale: [1, 1.02, 0.99, 1], opacity: [0.6, 0.85, 0.55, 0.6] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Subtle jitter dot */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-purple/60 shadow-[0_0_12px_rgba(147,51,234,0.7)]"
+              animate={{ x: [0, 3, -2, 2, 0], y: [0, -2, 3, -1, 0] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* Scan line */}
+            <motion.div
+              className="absolute left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-electric-blue to-transparent opacity-70"
+              animate={{ top: ["18%", "82%", "18%"] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            />
+
             {/* Guide text */}
             {step === "position" && (
               <div className="absolute inset-0 flex items-center justify-center">
